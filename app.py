@@ -391,6 +391,20 @@ if st.session_state.page == "home":
 
         st.markdown("""
         <div class="feature-card">
+            <div class="feature-title">Earnings Analysis</div>
+            <div class="feature-desc">
+                Quarterly revenue, profit trends, and EPS beat/miss
+                history for any NSE stock. Includes AI-generated
+                earnings health summary.
+            </div>
+            <span class="tag">EPS</span>
+            <span class="tag">Revenue</span>
+            <span class="tag">AI Summary</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div class="feature-card">
             <div class="feature-title">AI Chatbot</div>
             <div class="feature-desc">
                 Ask anything about a stock or investing in general.

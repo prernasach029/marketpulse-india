@@ -1,0 +1,831 @@
+import streamlit as st
+import pandas as pd
+import sys
+import os
+from dotenv import load_dotenv
+from groq import Groq
+import feedparser
+from email.utils import parsedate_to_datetime
+import pytz
+
+load_dotenv()
+sys.path.insert(0, ".")
+
+from data.fetcher import fetch_stock_data, compute_returns
+from risk import compute_tail_risk
+from regime import detect_regimes
+from sentiment import analyze_sentiment
+from scoring import compute_composite_score
+
+st.set_page_config(
+    page_title="MarketPulse India",
+    page_icon="📈",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+st.markdown("""
+<style>
+    [data-testid="stSidebar"] { background-color: #13151a; }
+    div[data-testid="stSidebarNav"] { display: none; }
+    .block-container { padding-top: 1.5rem; }
+    .feature-card {
+        background: #1c1f2e;
+        border: 1px solid #2a2d3e;
+        border-radius: 10px;
+        padding: 22px;
+        margin-bottom: 14px;
+    }
+    .feature-title { font-size: 1em; font-weight: 600; margin-bottom: 6px; }
+    .feature-desc { color: #999; font-size: 0.87em; line-height: 1.6; }
+    .tag {
+        display: inline-block;
+        background: #2a2d3e;
+        color: #999;
+        font-size: 0.72em;
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin-right: 4px;
+        margin-top: 6px;
+    }
+    .bull-box {
+        background: #0d1f14;
+        border-left: 3px solid #3d9970;
+        padding: 14px 18px;
+        border-radius: 6px;
+        margin: 8px 0;
+        font-size: 0.91em;
+        line-height: 1.7;
+    }
+    .bear-box {
+        background: #1f0d0d;
+        border-left: 3px solid #c0392b;
+        padding: 14px 18px;
+        border-radius: 6px;
+        margin: 8px 0;
+        font-size: 0.91em;
+        line-height: 1.7;
+    }
+    .signal-box {
+        background: #16191f;
+        border: 1px solid #3a3d5c;
+        padding: 14px 18px;
+        border-radius: 6px;
+        margin: 8px 0;
+        font-size: 0.93em;
+    }
+    .tip-box {
+        background: #1a1c14;
+        border-left: 3px solid #a89132;
+        padding: 14px 18px;
+        border-radius: 6px;
+        margin: 8px 0;
+        font-size: 0.91em;
+        line-height: 1.7;
+    }
+    .summary-box {
+        background: #16191f;
+        border: 1px solid #2a2d3e;
+        padding: 16px 20px;
+        border-radius: 8px;
+        margin: 8px 0;
+        line-height: 1.7;
+        font-size: 0.93em;
+        color: #ccc;
+    }
+    .news-card {
+        background: #16191f;
+        border: 1px solid #2a2d3e;
+        border-radius: 8px;
+        padding: 14px 18px;
+        margin-bottom: 10px;
+    }
+    .news-title { font-size: 0.95em; font-weight: 500; line-height: 1.5; margin-bottom: 6px; }
+    .news-meta { font-size: 0.77em; color: #777; }
+    .news-source { color: #aaa; font-weight: 500; }
+    .chat-header {
+        background: #16191f;
+        border: 1px solid #2a2d3e;
+        border-radius: 8px;
+        padding: 14px 18px;
+        margin-bottom: 16px;
+        font-size: 0.9em;
+        color: #aaa;
+    }
+    [data-testid="stChatMessage"] {
+        background: #16191f;
+        border-radius: 8px;
+        border: 1px solid #2a2d3e;
+        margin-bottom: 8px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# --- Session state ---
+if "page" not in st.session_state:
+    st.session_state.page = "home"
+if "home_expanded" not in st.session_state:
+    st.session_state.home_expanded = True
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "analysis_data" not in st.session_state:
+    st.session_state.analysis_data = {}
+if "timezone" not in st.session_state:
+    st.session_state.timezone = "India (IST)"
+if "language" not in st.session_state:
+    st.session_state.language = "English"
+
+# --- Sidebar ---
+with st.sidebar:
+    st.markdown("### MarketPulse India")
+    st.markdown("---")
+
+    with st.expander("Home", expanded=st.session_state.home_expanded):
+        if st.button("Overview", use_container_width=True, key="nav_home"):
+            st.session_state.page = "home"
+            st.session_state.home_expanded = True
+            st.rerun()
+        if st.button("Stock Analysis", use_container_width=True, key="nav_stocks"):
+            st.session_state.page = "stocks"
+            st.session_state.home_expanded = True
+            st.rerun()
+        if st.button("News Feed", use_container_width=True, key="nav_news"):
+            st.session_state.page = "news"
+            st.session_state.home_expanded = True
+            st.rerun()
+        if st.button("Portfolio", use_container_width=True, key="nav_portfolio"):
+            st.session_state.page = "portfolio"
+            st.session_state.home_expanded = True
+            st.rerun()
+
+    st.markdown("---")
+    if st.button("Chatbot", use_container_width=True, key="nav_chat"):
+        st.session_state.page = "chatbot"
+        st.session_state.home_expanded = False
+        st.rerun()
+
+    st.markdown("---")
+    st.markdown("<div style='font-size:0.8em; color:#666'>Preferences</div>", unsafe_allow_html=True)
+    st.session_state.timezone = st.selectbox(
+        "Timezone",
+        ["India (IST)", "UAE (GST)", "UK (GMT/BST)", "US Eastern", "US Pacific", "Singapore"],
+        index=["India (IST)", "UAE (GST)", "UK (GMT/BST)", "US Eastern", "US Pacific", "Singapore"].index(
+            st.session_state.timezone),
+        key="tz_select"
+    )
+    st.session_state.language = st.selectbox(
+        "Language",
+        ["English", "Hindi"],
+        index=["English", "Hindi"].index(st.session_state.language),
+        key="lang_select"
+    )
+
+# --- Constants ---
+TIMEZONES = {
+    "India (IST)": "Asia/Kolkata",
+    "UAE (GST)": "Asia/Dubai",
+    "UK (GMT/BST)": "Europe/London",
+    "US Eastern": "America/New_York",
+    "US Pacific": "America/Los_Angeles",
+    "Singapore": "Asia/Singapore",
+}
+LANGUAGES = {
+    "English": ("en", "IN"),
+    "Hindi": ("hi", "IN"),
+}
+
+def predict_prices(df, days=30):
+    from statsmodels.tsa.arima.model import ARIMA
+    import numpy as np
+    import warnings
+    warnings.filterwarnings("ignore")
+    
+    prices = df["Close"].values
+    
+    try:
+        model = ARIMA(prices, order=(5, 1, 0))
+        fitted = model.fit()
+        forecast = fitted.forecast(steps=days)
+        
+        last_date = df.index[-1]
+        import pandas as pd
+        future_dates = pd.bdate_range(start=last_date, periods=days + 1)[1:]
+        
+        current_price = prices[-1]
+        lower = forecast * 0.97
+        upper = forecast * 1.03
+        
+        return {
+            "dates": future_dates,
+            "forecast": forecast,
+            "lower": lower,
+            "upper": upper,
+            "current_price": round(float(current_price), 2),
+            "predicted_end": round(float(forecast[-1]), 2),
+            "change_pct": round((forecast[-1] - current_price) / current_price * 100, 2)
+        }
+    except:
+        return None
+# --- Helper functions ---
+def get_groq_client():
+    api_key = os.getenv("GROQ_API_KEY")
+    return Groq(api_key=api_key) if api_key else None
+
+
+def get_news(query, max_items=12):
+    lang_code, country_code = LANGUAGES.get(st.session_state.language, ("en", "IN"))
+    query_encoded = query.replace(" ", "+")
+    url = f"https://news.google.com/rss/search?q={query_encoded}&hl={lang_code}-{country_code}&gl={country_code}&ceid={country_code}:{lang_code}"
+    feed = feedparser.parse(url)
+    tz_name = TIMEZONES.get(st.session_state.timezone, "Asia/Kolkata")
+    results = []
+    for entry in feed.entries[:max_items]:
+        title = entry.title
+        source = "Unknown"
+        if " - " in title:
+            parts = title.rsplit(" - ", 1)
+            title, source = parts[0], parts[1]
+        pub_time = ""
+        try:
+            dt = parsedate_to_datetime(entry.published)
+            tz = pytz.timezone(tz_name)
+            dt_local = dt.astimezone(tz)
+            pub_time = dt_local.strftime("%d %b %Y, %I:%M %p %Z")
+        except:
+            pass
+        results.append({
+            "title": title,
+            "source": source,
+            "date": pub_time,
+            "link": entry.link if hasattr(entry, "link") else ""
+        })
+    return results
+
+
+def parse_insights(raw_text):
+    sections = {"summary": "", "bull": "", "bear": "", "signal": "", "tip": ""}
+    current = "summary"
+    for line in raw_text.split("\n"):
+        l = line.lower()
+        if "bull case" in l:
+            current = "bull"
+        elif "bear case" in l:
+            current = "bear"
+        elif "**signal**" in l or ("signal" in l and ("buy" in l or "hold" in l or "sell" in l)):
+            current = "signal"
+        elif "portfolio tip" in l:
+            current = "tip"
+        elif "what this means" in l:
+            current = "summary"
+        else:
+            sections[current] += line + "\n"
+    return sections
+
+
+def get_ai_insights(company, ticker, var_99, es_99, regime, sentiment_score, composite_score, label, headlines):
+    client = get_groq_client()
+    if not client:
+        return None
+    headlines_text = "\n".join(f"- {h['title']}" for h in headlines[:5])
+    prompt = f"""You are a friendly financial advisor for Indian retail investors.
+
+Data for {company} ({ticker}):
+- 99% VaR: {var_99}%
+- 99% ES: {es_99}%
+- Volatility Regime: {regime}
+- Sentiment Risk: {sentiment_score}/100
+- Composite Risk Score: {composite_score}/100 ({label})
+
+Recent News:
+{headlines_text}
+
+Respond in this exact structure:
+
+**What this means**
+[2-3 plain English sentences]
+
+**Bull Case**
+[2-3 reasons to consider buying/holding]
+
+**Bear Case**
+[2-3 reasons to be cautious]
+
+**Signal**
+[Buy / Hold / Sell — one sentence reason]
+
+**Portfolio Tip**
+[One actionable suggestion]
+
+Keep it concise and jargon-free."""
+
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        max_tokens=900,
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.choices[0].message.content
+
+
+def chat_response(user_message):
+    client = get_groq_client()
+    if not client:
+        return "GROQ_API_KEY not found in .env file."
+    data = st.session_state.analysis_data
+    context = ""
+    if data:
+        context = f"""User's last analysis:
+- Stock: {data.get('company')} ({data.get('ticker')})
+- Risk Score: {data.get('composite_score')}/100 — {data.get('label')}
+- Regime: {data.get('regime')}
+- VaR: {data.get('var_99')}%
+- Sentiment: {data.get('sentiment_score')}/100
+"""
+    messages = [
+        {
+            "role": "system",
+            "content": f"""You are MarketPulse AI, a professional investment assistant for Indian retail investors.
+{context}
+Be concise and clear. Plain language only.
+Always note this is not financial advice — suggest consulting a SEBI-registered advisor for major decisions."""
+        }
+    ]
+    for msg in st.session_state.messages[-8:]:
+        messages.append({"role": msg["role"], "content": msg["content"]})
+    messages.append({"role": "user", "content": user_message})
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        max_tokens=600,
+        messages=messages
+    )
+    return response.choices[0].message.content
+
+
+# ─────────────────────────────────────────
+# PAGE: HOME
+# ─────────────────────────────────────────
+if st.session_state.page == "home":
+    st.markdown("## MarketPulse India")
+    st.markdown("##### NSE stock risk analysis for Indian retail investors")
+    st.markdown("---")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("""
+        <div class="feature-card">
+            <div class="feature-title">Stock Analysis</div>
+            <div class="feature-desc">
+                Enter any NSE ticker and get a full risk breakdown —
+                tail risk via EVT, volatility regime via HMM, and
+                news sentiment via FinBERT. Includes plain-English
+                summary, bull/bear view, and a buy/hold/sell signal.
+            </div>
+            <span class="tag">EVT</span>
+            <span class="tag">HMM</span>
+            <span class="tag">FinBERT</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div class="feature-card">
+            <div class="feature-title">AI Chatbot</div>
+            <div class="feature-desc">
+                Ask anything about a stock or investing in general.
+                Context-aware — knows your last analysis and answers
+                follow-up questions in plain English.
+            </div>
+            <span class="tag">Groq LLM</span>
+            <span class="tag">Context-aware</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("""
+        <div class="feature-card">
+            <div class="feature-title">News Feed</div>
+            <div class="feature-desc">
+                Latest financial news for any stock from multiple
+                sources. Filtered by your timezone and language.
+                Refreshed on every visit.
+            </div>
+            <span class="tag">Multi-source</span>
+            <span class="tag">Timezone-aware</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div class="feature-card">
+            <div class="feature-title">How to use</div>
+            <div class="feature-desc">
+                1. Set timezone and language in the sidebar<br><br>
+                2. Click <b>Stock Analysis</b> under Home in the sidebar<br><br>
+                3. Enter a ticker like <code>RELIANCE.NS</code> and click Analyze<br><br>
+                4. Visit <b>News Feed</b> for latest headlines<br><br>
+                5. Use <b>Chatbot</b> to ask follow-up questions
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.caption("Not financial advice. Always consult a SEBI-registered advisor before investing.")
+
+
+# ─────────────────────────────────────────
+# PAGE: STOCK ANALYSIS
+# ─────────────────────────────────────────
+elif st.session_state.page == "stocks":
+    st.markdown("## Stock Analysis")
+    st.markdown("Enter an NSE ticker to get a full risk breakdown and AI-powered insights.")
+    st.markdown("---")
+
+    with st.form("analysis_form"):
+        c1, c2, c3 = st.columns([2, 2, 1])
+        with c1:
+            ticker = st.text_input("NSE Ticker", value="RELIANCE.NS")
+        with c2:
+            company_name = st.text_input("Company Name", value="Reliance Industries")
+        with c3:
+            period = st.selectbox("Period", ["1y", "2y", "5y"], index=1)
+        submitted = st.form_submit_button("Analyze", use_container_width=True)
+
+    if submitted:
+        with st.spinner("Fetching data..."):
+            df = fetch_stock_data(ticker, period=period)
+            df = compute_returns(df)
+
+        with st.spinner("Running risk models..."):
+            evt = compute_tail_risk(df["log_return"])
+            regime_df, _ = detect_regimes(df["log_return"])
+            current_regime = regime_df["regime"].iloc[-1]
+            regime_counts = regime_df["regime"].value_counts()
+            sent = analyze_sentiment(company_name)
+            score = compute_composite_score(
+                var_99=evt["VaR_99"],
+                es_99=evt["ES_99"],
+                regime=current_regime,
+                sentiment_risk_score=sent["sentiment_risk_score"]
+            )
+
+        st.markdown("---")
+        st.markdown(f"### {company_name} ({ticker})")
+
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("99% VaR", f"{evt['VaR_99']}%", help="Worst expected daily loss 99% of the time")
+        c2.metric("99% ES", f"{evt['ES_99']}%", help="Average loss when VaR is breached")
+        c3.metric("Volatility Regime", current_regime)
+        c4.metric("Sentiment Risk", f"{sent['sentiment_risk_score']}/100")
+
+        st.markdown("---")
+        rc1, rc2 = st.columns([1, 2])
+        with rc1:
+            st.metric("Risk Score", f"{score['composite_score']} / 100")
+            st.markdown(f"**{score['label']}**")
+        with rc2:
+            st.progress(int(score['composite_score']))
+            if score['composite_score'] >= 65:
+                st.error("High risk. Be cautious before investing.")
+            elif score['composite_score'] >= 35:
+                st.warning("Moderate risk. Research before investing.")
+            else:
+                st.success("Lower risk environment. Still do your due diligence.")
+
+        st.markdown("---")
+        st.markdown("#### AI Insights")
+        with st.spinner("Generating insights..."):
+            headlines = get_news(company_name + " stock NSE", max_items=5)
+            raw = get_ai_insights(
+                company_name, ticker,
+                evt["VaR_99"], evt["ES_99"],
+                current_regime, sent["sentiment_risk_score"],
+                score["composite_score"], score["label"], headlines
+            )
+
+        if raw:
+            sections = parse_insights(raw)
+            if sections["summary"].strip():
+                st.markdown(
+                    f'<div class="summary-box">{sections["summary"].strip()}</div>',
+                    unsafe_allow_html=True
+                )
+
+            bc1, bc2 = st.columns(2)
+            with bc1:
+                st.markdown(
+                    f'<div class="bull-box"><strong>Bull Case</strong><br><br>{sections["bull"].strip().replace(chr(10), "<br>")}</div>',
+                    unsafe_allow_html=True
+                )
+            with bc2:
+                st.markdown(
+                    f'<div class="bear-box"><strong>Bear Case</strong><br><br>{sections["bear"].strip().replace(chr(10), "<br>")}</div>',
+                    unsafe_allow_html=True
+                )
+
+            if sections["signal"].strip():
+                st.markdown(
+                    f'<div class="signal-box"><strong>Signal</strong> &nbsp;|&nbsp; {sections["signal"].strip()}</div>',
+                    unsafe_allow_html=True
+                )
+            if sections["tip"].strip():
+                st.markdown(
+                    f'<div class="tip-box"><strong>Portfolio Tip</strong><br><br>{sections["tip"].strip()}</div>',
+                    unsafe_allow_html=True
+                )
+
+        st.markdown("---")
+        st.markdown("#### Price History")
+        st.caption("Closing price over selected period. Rising = gaining value. Falling = losing value.")
+        st.line_chart(df["Close"])
+
+        st.markdown("---")
+        st.markdown("#### 30-Day Price Forecast")
+        with st.spinner("Running ARIMA forecast..."):
+            pred = predict_prices(df)
+
+        if pred:
+            import pandas as pd
+            import numpy as np
+
+            direction = "up" if pred["change_pct"] > 0 else "down"
+            color = "green" if pred["change_pct"] > 0 else "red"
+
+            fc1, fc2, fc3 = st.columns(3)
+            fc1.metric("Current Price", f"₹{pred['current_price']}")
+            fc2.metric("Predicted (30d)", f"₹{pred['predicted_end']}")
+            fc3.metric("Expected Change", f"{pred['change_pct']}%",
+                      delta=f"{pred['change_pct']}%")
+
+            forecast_df = pd.DataFrame({
+                "Forecast": pred["forecast"],
+                "Lower Band": pred["lower"],
+                "Upper Band": pred["upper"]
+            }, index=pred["dates"])
+            st.line_chart(forecast_df)
+
+            change_abs = abs(pred["change_pct"])
+            if pred["change_pct"] > 2:
+                forecast_text = f"The model suggests **{company_name}** may trend upward over the next 30 trading days, with a predicted price of around ₹{pred['predicted_end']} (currently ₹{pred['current_price']}). The shaded band shows the range of likely prices."
+            elif pred["change_pct"] < -2:
+                forecast_text = f"The model suggests **{company_name}** may trend downward over the next 30 trading days, with a predicted price of around ₹{pred['predicted_end']} (currently ₹{pred['current_price']}). Consider waiting for a better entry point."
+            else:
+                forecast_text = f"The model suggests **{company_name}** may trade sideways over the next 30 days, staying close to the current price of ₹{pred['current_price']}. No strong directional signal."
+
+            st.info(forecast_text)
+            st.caption("Forecast based on ARIMA model. Predictions are not guaranteed — use as one input among many.")
+
+        st.session_state.analysis_data = {
+            "ticker": ticker,
+            "company": company_name,
+            "var_99": evt["VaR_99"],
+            "es_99": evt["ES_99"],
+            "regime": current_regime,
+            "sentiment_score": sent["sentiment_risk_score"],
+            "composite_score": score["composite_score"],
+            "label": score["label"]
+        }
+        st.caption("Not financial advice. Consult a SEBI-registered advisor before investing.")
+
+
+# ─────────────────────────────────────────
+# PAGE: NEWS FEED
+# ─────────────────────────────────────────
+elif st.session_state.page == "news":
+    st.markdown("## News Feed")
+    st.markdown(
+        f"Latest financial news · Timezone: **{st.session_state.timezone}** · Language: **{st.session_state.language}**"
+    )
+    st.markdown("---")
+
+    nc1, nc2 = st.columns([3, 1])
+    with nc1:
+        query = st.text_input("Search", value="Reliance Industries stock NSE")
+    with nc2:
+        max_items = st.selectbox("Articles", [6, 12, 20], index=1)
+
+    if st.button("Get News"):
+        entries = get_news(query, max_items)
+        if not entries:
+            st.info("No news found. Try a different search term.")
+        else:
+            st.markdown(f"**{len(entries)} articles found**")
+            st.markdown("---")
+            for item in entries:
+                st.markdown(f"""
+                <div class="news-card">
+                    <div class="news-title">{item['title']}</div>
+                    <div class="news-meta">
+                        <span class="news-source">{item['source']}</span>
+                        &nbsp;·&nbsp; {item['date']}
+                        {"&nbsp;·&nbsp;<a href='" + item['link'] + "' target='_blank' style='color:#666; text-decoration:none'>Read</a>" if item['link'] else ""}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+
+# ─────────────────────────────────────────
+# PAGE: CHATBOT
+# ─────────────────────────────────────────
+elif st.session_state.page == "chatbot":
+    st.markdown("## MarketPulse AI")
+    st.markdown("---")
+
+    data = st.session_state.analysis_data
+    if data:
+        st.markdown(f"""
+        <div class="chat-header">
+            Context loaded &nbsp;·&nbsp; {data.get('company')} ({data.get('ticker')})
+            &nbsp;·&nbsp; Risk Score: {data.get('composite_score')}/100
+            &nbsp;·&nbsp; {data.get('label')}
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="chat-header">
+            No analysis loaded. Run a stock analysis first for context-aware answers,
+            or ask general investing questions below.
+        </div>
+        """, unsafe_allow_html=True)
+
+    _, clr_col = st.columns([5, 1])
+    with clr_col:
+        if st.button("Clear", use_container_width=True):
+            st.session_state.messages = []
+            st.rerun()
+
+    if not st.session_state.messages:
+        st.markdown("**Suggested questions**")
+        suggestions = [
+            "Should I invest in this stock right now?",
+            "What does VaR mean in simple terms?",
+            "How do I diversify my portfolio?",
+            "What is High Vol regime?",
+        ]
+        s1, s2 = st.columns(2)
+        for i, s in enumerate(suggestions):
+            col = s1 if i % 2 == 0 else s2
+            if col.button(s, use_container_width=True, key=f"sug_{i}"):
+                st.session_state.messages.append({"role": "user", "content": s})
+                response = chat_response(s)
+                st.session_state.messages.append({"role": "assistant", "content": response})
+                st.rerun()
+
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"], avatar="👤" if msg["role"] == "user" else "🤖"):
+            st.markdown(msg["content"])
+
+    if prompt := st.chat_input("Ask anything about stocks or investing..."):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user", avatar="👤"):
+            st.markdown(prompt)
+        with st.chat_message("assistant", avatar="🤖"):
+            with st.spinner(""):
+                response = chat_response(prompt)
+                st.markdown(response)
+        st.session_state.messages.append({"role": "assistant", "content": response})
+
+        # ─────────────────────────────────────────
+# PAGE: PORTFOLIO
+# ─────────────────────────────────────────
+elif st.session_state.page == "portfolio":
+    st.markdown("## Portfolio Tracker")
+    st.markdown("Enter up to 5 NSE stocks to get a ranked risk breakdown and portfolio health score.")
+    st.markdown("---")
+
+    with st.form("portfolio_form"):
+        st.markdown("**Enter your stocks**")
+        cols = st.columns(5)
+        tickers = []
+        companies = []
+        defaults_t = ["RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "INFY.NS", ""]
+        defaults_c = ["Reliance Industries", "TCS", "HDFC Bank", "Infosys", ""]
+        for i, col in enumerate(cols):
+            with col:
+                t = st.text_input(f"Ticker {i+1}", value=defaults_t[i], key=f"pt_{i}")
+                c = st.text_input(f"Company {i+1}", value=defaults_c[i], key=f"pc_{i}")
+                tickers.append(t)
+                companies.append(c)
+        period = st.selectbox("Period", ["1y", "2y"], index=0)
+        submitted = st.form_submit_button("Analyze Portfolio", use_container_width=True)
+
+    if submitted:
+        valid = [(t.strip(), c.strip()) for t, c in zip(tickers, companies) if t.strip()]
+        if not valid:
+            st.warning("Enter at least one ticker.")
+        else:
+            results = []
+            progress = st.progress(0)
+            status = st.empty()
+
+            for i, (ticker, company) in enumerate(valid):
+                status.text(f"Analyzing {ticker}...")
+                try:
+                    df = fetch_stock_data(ticker, period=period)
+                    df = compute_returns(df)
+                    evt = compute_tail_risk(df["log_return"])
+                    regime_df, _ = detect_regimes(df["log_return"])
+                    current_regime = regime_df["regime"].iloc[-1]
+                    sent = analyze_sentiment(company)
+                    score = compute_composite_score(
+                        var_99=evt["VaR_99"],
+                        es_99=evt["ES_99"],
+                        regime=current_regime,
+                        sentiment_risk_score=sent["sentiment_risk_score"]
+                    )
+                    results.append({
+                        "Ticker": ticker,
+                        "Company": company,
+                        "Risk Score": score["composite_score"],
+                        "Label": score["label"],
+                        "VaR 99%": f"{evt['VaR_99']}%",
+                        "ES 99%": f"{evt['ES_99']}%",
+                        "Regime": current_regime,
+                        "Sentiment": f"{sent['sentiment_risk_score']}/100"
+                    })
+                except Exception as e:
+                    results.append({
+                        "Ticker": ticker,
+                        "Company": company,
+                        "Risk Score": None,
+                        "Label": "Error",
+                        "VaR 99%": "N/A",
+                        "ES 99%": "N/A",
+                        "Regime": "N/A",
+                        "Sentiment": "N/A"
+                    })
+                progress.progress((i + 1) / len(valid))
+
+            status.empty()
+            progress.empty()
+
+            # Sort by risk score
+            valid_results = [r for r in results if r["Risk Score"] is not None]
+            valid_results.sort(key=lambda x: x["Risk Score"])
+
+            st.markdown("---")
+            st.markdown("### Portfolio Risk Ranking")
+            st.caption("Sorted from lowest to highest risk.")
+
+            import pandas as pd
+            df_results = pd.DataFrame(valid_results)
+            st.dataframe(
+                df_results[["Company", "Ticker", "Risk Score", "Label", "VaR 99%", "Regime", "Sentiment"]],
+                use_container_width=True,
+                hide_index=True
+            )
+
+            # Portfolio health score
+            avg_score = sum(r["Risk Score"] for r in valid_results) / len(valid_results)
+            st.markdown("---")
+            pc1, pc2 = st.columns([1, 2])
+            with pc1:
+                st.metric("Portfolio Health Score", f"{round(avg_score, 1)} / 100")
+                if avg_score >= 65:
+                    st.error("High risk portfolio. Consider rebalancing.")
+                elif avg_score >= 35:
+                    st.warning("Moderate risk. Monitor closely.")
+                else:
+                    st.success("Well-balanced, lower risk portfolio.")
+            with pc2:
+                st.progress(int(avg_score))
+
+            # Risk chart
+            st.markdown("---")
+            st.markdown("#### Risk Score by Stock")
+            chart_data = pd.DataFrame({
+                "Stock": [r["Ticker"] for r in valid_results],
+                "Risk Score": [r["Risk Score"] for r in valid_results]
+            }).set_index("Stock")
+            st.bar_chart(chart_data)
+
+            # AI Portfolio advice
+            st.markdown("---")
+            st.markdown("#### AI Portfolio Advice")
+            with st.spinner("Generating advice..."):
+                client = get_groq_client()
+                if client:
+                    summary = "\n".join([
+                        f"- {r['Company']} ({r['Ticker']}): Risk Score {r['Risk Score']}/100, {r['Label']}, Regime: {r['Regime']}"
+                        for r in valid_results
+                    ])
+                    prompt = f"""You are a portfolio advisor for Indian retail investors.
+
+Here is the user's portfolio risk analysis:
+{summary}
+
+Overall portfolio risk score: {round(avg_score, 1)}/100
+
+Give:
+1. **Portfolio Summary** (2-3 sentences on overall health)
+2. **Hold** (stocks that look stable)
+3. **Watch** (stocks to monitor carefully)
+4. **Reduce** (stocks with high risk worth reconsidering)
+5. **One Action** (the single most important thing this investor should do)
+
+Keep it simple, practical, and jargon-free."""
+
+                    response = client.chat.completions.create(
+                        model="llama-3.3-70b-versatile",
+                        max_tokens=700,
+                        messages=[{"role": "user", "content": prompt}]
+                    )
+                    st.markdown(response.choices[0].message.content)
+
+            st.caption("Not financial advice. Consult a SEBI-registered advisor before investing.")

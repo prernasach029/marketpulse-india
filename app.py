@@ -157,6 +157,10 @@ with st.sidebar:
             st.session_state.page = "portfolio"
             st.session_state.home_expanded = True
             st.rerun()
+        if st.button("Earnings Analysis", use_container_width=True, key="nav_earnings"):
+            st.session_state.page = "earnings"
+            st.session_state.home_expanded = True
+            st.rerun()
 
     st.markdown("---")
     if st.button("Chatbot", use_container_width=True, key="nav_chat"):
@@ -829,3 +833,154 @@ Keep it simple, practical, and jargon-free."""
                     st.markdown(response.choices[0].message.content)
 
             st.caption("Not financial advice. Consult a SEBI-registered advisor before investing.")
+            # ─────────────────────────────────────────
+# PAGE: EARNINGS ANALYSIS
+# ─────────────────────────────────────────
+elif st.session_state.page == "earnings":
+    import pandas as pd
+    import yfinance as yf
+
+    st.markdown("## Earnings Analysis")
+    st.markdown("Quarterly earnings breakdown — EPS, Revenue, and Profit trends.")
+    st.markdown("---")
+
+    with st.form("earnings_form"):
+        ec1, ec2 = st.columns([2, 2])
+        with ec1:
+            ticker = st.text_input("NSE Ticker", value="RELIANCE.NS")
+        with ec2:
+            company_name = st.text_input("Company Name", value="Reliance Industries")
+        submitted = st.form_submit_button("Get Earnings", use_container_width=True)
+
+    if submitted:
+        with st.spinner("Fetching earnings data..."):
+            try:
+                stock = yf.Ticker(ticker)
+                
+                # Quarterly financials
+                quarterly_financials = stock.quarterly_financials
+                quarterly_earnings = stock.quarterly_earnings
+
+                # Income statement data
+                income = stock.quarterly_income_stmt
+
+            except Exception as e:
+                st.error(f"Could not fetch data for {ticker}. Try another ticker.")
+                income = None
+                quarterly_earnings = None
+
+        if income is not None and not income.empty:
+            st.markdown(f"### {company_name} ({ticker})")
+            st.markdown("---")
+
+            # --- Revenue Trend ---
+            try:
+                if "Total Revenue" in income.index:
+                    revenue = income.loc["Total Revenue"].dropna()
+                    revenue = revenue.sort_index()
+                    revenue_df = pd.DataFrame({
+                        "Quarter": [str(d)[:10] for d in revenue.index],
+                        "Revenue (Cr)": [round(v/1e7, 2) for v in revenue.values]
+                    }).set_index("Quarter")
+
+                    st.markdown("#### Revenue Trend")
+                    st.caption("Total revenue per quarter in Crores (₹)")
+                    st.bar_chart(revenue_df)
+            except:
+                st.info("Revenue data not available.")
+
+            # --- Net Profit Trend ---
+            try:
+                profit_keys = ["Net Income", "Net Income Common Stockholders"]
+                profit_key = next((k for k in profit_keys if k in income.index), None)
+                if profit_key:
+                    profit = income.loc[profit_key].dropna()
+                    profit = profit.sort_index()
+                    profit_df = pd.DataFrame({
+                        "Quarter": [str(d)[:10] for d in profit.index],
+                        "Net Profit (Cr)": [round(v/1e7, 2) for v in profit.values]
+                    }).set_index("Quarter")
+
+                    st.markdown("#### Net Profit Trend")
+                    st.caption("Net profit per quarter in Crores (₹)")
+                    st.bar_chart(profit_df)
+            except:
+                st.info("Profit data not available.")
+
+            # --- EPS Beat/Miss ---
+            try:
+                earnings = stock.earnings_history
+                if earnings is not None and not earnings.empty:
+                    st.markdown("#### EPS — Actual vs Estimate")
+                    st.caption("Green = beat estimate, Red = missed estimate")
+
+                    eps_data = earnings[["epsEstimate", "epsActual"]].dropna().tail(8)
+                    eps_data.index = [str(i)[:10] for i in eps_data.index]
+                    eps_data.columns = ["EPS Estimate", "EPS Actual"]
+                    st.line_chart(eps_data)
+
+                    # Beat/Miss table
+                    eps_data["Result"] = eps_data.apply(
+                        lambda r: "Beat" if r["EPS Actual"] >= r["EPS Estimate"] else "Missed", axis=1
+                    )
+                    eps_data["Surprise %"] = ((eps_data["EPS Actual"] - eps_data["EPS Estimate"]) / abs(eps_data["EPS Estimate"]) * 100).round(2)
+                    st.dataframe(eps_data, use_container_width=True)
+            except:
+                st.info("EPS history not available for this ticker.")
+
+            # --- Key Metrics ---
+            st.markdown("---")
+            st.markdown("#### Key Financial Metrics")
+            try:
+                info = stock.info
+                m1, m2, m3, m4 = st.columns(4)
+                m1.metric("P/E Ratio", info.get("trailingPE", "N/A"))
+                m2.metric("EPS (TTM)", info.get("trailingEps", "N/A"))
+                m3.metric("Revenue (TTM)", f"₹{round(info.get('totalRevenue', 0)/1e7, 0):.0f} Cr" if info.get('totalRevenue') else "N/A")
+                m4.metric("Profit Margin", f"{round(info.get('profitMargins', 0)*100, 2)}%" if info.get('profitMargins') else "N/A")
+            except:
+                st.info("Key metrics unavailable.")
+
+            # --- AI Earnings Summary ---
+            st.markdown("---")
+            st.markdown("#### AI Earnings Summary")
+            with st.spinner("Generating AI summary..."):
+                client = get_groq_client()
+                if client:
+                    try:
+                        info = stock.info
+                        pe = info.get("trailingPE", "N/A")
+                        eps = info.get("trailingEps", "N/A")
+                        margin = info.get("profitMargins", "N/A")
+                        revenue = info.get("totalRevenue", "N/A")
+
+                        prompt = f"""You are a financial analyst helping Indian retail investors understand earnings.
+
+Company: {company_name} ({ticker})
+P/E Ratio: {pe}
+EPS (TTM): {eps}
+Profit Margin: {margin}
+Total Revenue (TTM): {revenue}
+
+Give a concise earnings analysis:
+1. **Earnings Health** (2-3 sentences on overall financial health)
+2. **Strengths** (2-3 positive points from the financials)
+3. **Concerns** (2-3 things to watch out for)
+4. **Valuation** (is the P/E reasonable? overvalued or undervalued?)
+5. **Bottom Line** (one sentence verdict for a retail investor)
+
+Use simple language. No jargon."""
+
+                        response = client.chat.completions.create(
+                            model="llama-3.3-70b-versatile",
+                            max_tokens=700,
+                            messages=[{"role": "user", "content": prompt}]
+                        )
+                        st.markdown(response.choices[0].message.content)
+                    except Exception as e:
+                        st.info("AI summary unavailable.")
+
+        else:
+            st.warning(f"No earnings data found for {ticker}. This is common for some NSE stocks on Yahoo Finance. Try `TCS.NS`, `INFY.NS`, or `HDFCBANK.NS`.")
+
+        st.caption("Data sourced from Yahoo Finance. Not financial advice.")

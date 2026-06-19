@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import sys
 import os
@@ -406,11 +407,20 @@ Always note this is not financial advice — suggest consulting a SEBI-registere
 # PAGE: HOME
 # ─────────────────────────────────────────
 if st.session_state.page == "home":
-    # Ticker bar
-    st.markdown("""
+    css = open("styles.py").read()
+    components.html(f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+    {load_css().replace('<style>','<style>')}
+    <style>
+    body {{ margin: 0; background: #0A0F1E; color: #E7ECF6; font-family: 'Inter', sans-serif; }}
+    </style>
+    </head>
+    <body style="background:#0A0F1E">
     <div class="tickerbar">
         <div class="tick-label"><span class="dot"></span>LIVE · NSE</div>
-        <div class="tick-track" id="track">
+        <div class="tick-track">
             <span class="tick"><span class="sym">NIFTY 50</span><span class="val">24,318.40</span><span class="chg up">▲ 0.62%</span></span>
             <span class="tick"><span class="sym">SENSEX</span><span class="val">79,943.71</span><span class="chg up">▲ 0.55%</span></span>
             <span class="tick"><span class="sym">BANK NIFTY</span><span class="val">51,602.05</span><span class="chg down">▼ 0.31%</span></span>
@@ -418,11 +428,9 @@ if st.session_state.page == "home":
             <span class="tick"><span class="sym">NIFTY AUTO</span><span class="val">23,104.80</span><span class="chg up">▲ 0.88%</span></span>
             <span class="tick"><span class="sym">INR/USD</span><span class="val">83.42</span><span class="chg up">▲ 0.08%</span></span>
             <span class="tick"><span class="sym">GOLD MCX</span><span class="val">71,840</span><span class="chg up">▲ 0.43%</span></span>
-            <span class="tick"><span class="sym">CRUDE MCX</span><span class="val">6,284</span><span class="chg down">▼ 1.02%</span></span>
             <span class="tick"><span class="sym">NIFTY 50</span><span class="val">24,318.40</span><span class="chg up">▲ 0.62%</span></span>
             <span class="tick"><span class="sym">SENSEX</span><span class="val">79,943.71</span><span class="chg up">▲ 0.55%</span></span>
             <span class="tick"><span class="sym">BANK NIFTY</span><span class="val">51,602.05</span><span class="chg down">▼ 0.31%</span></span>
-            <span class="tick"><span class="sym">NIFTY IT</span><span class="val">41,887.20</span><span class="chg up">▲ 1.24%</span></span>
         </div>
     </div>
     <div class="topbar">
@@ -436,14 +444,12 @@ if st.session_state.page == "home":
             </div>
             <div class="stamp">NSE TERMINAL<br>INDIA · EQUITY RISK</div>
         </div>
-
         <div class="grid snap">
             <div class="panel"><div class="l">NIFTY 50</div><div class="v">24,318.40</div><div class="c up"><span class="pill up">▲ 0.62%</span><span>+150.20</span></div></div>
             <div class="panel"><div class="l">SENSEX</div><div class="v">79,943.71</div><div class="c up"><span class="pill up">▲ 0.55%</span><span>+438.10</span></div></div>
-            <div class="panel"><div class="l">India VIX</div><div class="v" style="color:var(--amber)">14.82</div><div class="c"><span class="pill down">▼ 3.10%</span><span class="down">elevated</span></div></div>
+            <div class="panel"><div class="l">India VIX</div><div class="v" style="color:#E0A33B">14.82</div><div class="c"><span class="pill down">▼ 3.10%</span><span class="down">elevated</span></div></div>
             <div class="panel"><div class="l">Adv / Decl</div><div class="v">1,284 / 906</div><div class="c up"><span class="pill up">BREADTH +</span><span>58% advancing</span></div></div>
         </div>
-
         <div class="split">
             <div class="panel">
                 <div class="panel-h">
@@ -453,33 +459,33 @@ if st.session_state.page == "home":
                 <table>
                     <thead><tr><th>Stock</th><th>Last</th><th>Chg %</th><th>Regime</th><th>Risk</th></tr></thead>
                     <tbody>
-                        <tr><td><div class="wl-name"><div class="wl-logo">R</div><div>Reliance Inds.<div class="wl-tk">RELIANCE.NS</div></div></div></td><td>2,948.65</td><td class="up">+1.17%</td><td style="color:var(--amber)">High Vol</td><td><span class="risk-chip rc-a">61 · Amber</span></td></tr>
-                        <tr><td><div class="wl-name"><div class="wl-logo">T</div><div>TCS<div class="wl-tk">TCS.NS</div></div></div></td><td>4,182.30</td><td class="up">+0.42%</td><td style="color:var(--up)">Low Vol</td><td><span class="risk-chip rc-g">28 · Green</span></td></tr>
-                        <tr><td><div class="wl-name"><div class="wl-logo">H</div><div>HDFC Bank<div class="wl-tk">HDFCBANK.NS</div></div></div></td><td>1,694.05</td><td class="down">−0.38%</td><td style="color:var(--up)">Low Vol</td><td><span class="risk-chip rc-g">33 · Green</span></td></tr>
-                        <tr><td><div class="wl-name"><div class="wl-logo">I</div><div>Infosys<div class="wl-tk">INFY.NS</div></div></div></td><td>1,571.90</td><td class="up">+0.91%</td><td style="color:var(--amber)">High Vol</td><td><span class="risk-chip rc-a">47 · Amber</span></td></tr>
-                        <tr><td><div class="wl-name"><div class="wl-logo">A</div><div>Adani Ent.<div class="wl-tk">ADANIENT.NS</div></div></div></td><td>2,830.55</td><td class="down">−2.14%</td><td style="color:var(--down)">High Vol</td><td><span class="risk-chip rc-r">78 · Red</span></td></tr>
-                        <tr><td><div class="wl-name"><div class="wl-logo">W</div><div>Wipro<div class="wl-tk">WIPRO.NS</div></div></div></td><td>542.20</td><td class="up">+0.33%</td><td style="color:var(--up)">Low Vol</td><td><span class="risk-chip rc-g">31 · Green</span></td></tr>
+                        <tr><td><div class="wl-name"><div class="wl-logo">R</div><div>Reliance Inds.<div class="wl-tk">RELIANCE.NS</div></div></div></td><td>2,948.65</td><td class="up">+1.17%</td><td style="color:#E0A33B">High Vol</td><td><span class="risk-chip rc-a">61 · Amber</span></td></tr>
+                        <tr><td><div class="wl-name"><div class="wl-logo">T</div><div>TCS<div class="wl-tk">TCS.NS</div></div></div></td><td>4,182.30</td><td class="up">+0.42%</td><td style="color:#16C77E">Low Vol</td><td><span class="risk-chip rc-g">28 · Green</span></td></tr>
+                        <tr><td><div class="wl-name"><div class="wl-logo">H</div><div>HDFC Bank<div class="wl-tk">HDFCBANK.NS</div></div></div></td><td>1,694.05</td><td class="down">−0.38%</td><td style="color:#16C77E">Low Vol</td><td><span class="risk-chip rc-g">33 · Green</span></td></tr>
+                        <tr><td><div class="wl-name"><div class="wl-logo">I</div><div>Infosys<div class="wl-tk">INFY.NS</div></div></div></td><td>1,571.90</td><td class="up">+0.91%</td><td style="color:#E0A33B">High Vol</td><td><span class="risk-chip rc-a">47 · Amber</span></td></tr>
+                        <tr><td><div class="wl-name"><div class="wl-logo">A</div><div>Adani Ent.<div class="wl-tk">ADANIENT.NS</div></div></div></td><td>2,830.55</td><td class="down">−2.14%</td><td style="color:#F0455E">High Vol</td><td><span class="risk-chip rc-r">78 · Red</span></td></tr>
+                        <tr><td><div class="wl-name"><div class="wl-logo">W</div><div>Wipro<div class="wl-tk">WIPRO.NS</div></div></div></td><td>542.20</td><td class="up">+0.33%</td><td style="color:#16C77E">Low Vol</td><td><span class="risk-chip rc-g">31 · Green</span></td></tr>
                     </tbody>
                 </table>
             </div>
-
             <div class="panel">
                 <div class="panel-h">
                     <div class="t"><span class="ic"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg></span>Modules</div>
                     <span class="tag">5 TOOLS</span>
                 </div>
                 <div class="mods">
-                    <div class="mod"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 2 5-7"/></svg></div><div><div class="mt">Stock Analysis</div><div class="md">Full risk breakdown — EVT tail risk, HMM regime, FinBERT sentiment, and a buy/hold/sell signal.</div><div class="tags"><span class="tg">EVT</span><span class="tg">HMM</span><span class="tg">FinBERT</span></div></div></div>
-                    <div class="mod"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg></div><div><div class="mt">Earnings Analysis</div><div class="md">Quarterly revenue, profit, and EPS beat/miss history with an AI earnings-health summary.</div><div class="tags"><span class="tg">EPS</span><span class="tg">Revenue</span></div></div></div>
-                    <div class="mod"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div><div><div class="mt">News Feed</div><div class="md">Latest financial headlines per stock — timezone and language aware, refreshed each visit.</div><div class="tags"><span class="tg">Multi-source</span></div></div></div>
-                    <div class="mod"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 13h4l2 5 4-12 2 7h6"/></svg></div><div><div class="mt">Portfolio Tracker</div><div class="md">Rank up to 5 stocks by risk and get a portfolio health score with AI rebalancing advice.</div><div class="tags"><span class="tg">Ranked</span><span class="tg">Health score</span></div></div></div>
+                    <div class="mod"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 2 5-7"/></svg></div><div><div class="mt">Stock Analysis</div><div class="md">Full risk breakdown — EVT tail risk, HMM regime, FinBERT sentiment.</div><div class="tags"><span class="tg">EVT</span><span class="tg">HMM</span><span class="tg">FinBERT</span></div></div></div>
+                    <div class="mod"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg></div><div><div class="mt">Earnings Analysis</div><div class="md">Quarterly revenue, profit, and EPS beat/miss history.</div><div class="tags"><span class="tg">EPS</span><span class="tg">Revenue</span></div></div></div>
+                    <div class="mod"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div><div><div class="mt">News Feed</div><div class="md">Latest financial headlines — timezone and language aware.</div><div class="tags"><span class="tg">Multi-source</span></div></div></div>
+                    <div class="mod"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 13h4l2 5 4-12 2 7h6"/></svg></div><div><div class="mt">Portfolio Tracker</div><div class="md">Rank up to 5 stocks by risk with AI rebalancing advice.</div><div class="tags"><span class="tg">Ranked</span><span class="tg">Health score</span></div></div></div>
                 </div>
             </div>
         </div>
-        <div class="disclaimer">NOT FINANCIAL ADVICE · CONSULT A SEBI-REGISTERED ADVISOR BEFORE INVESTING · DATA VIA YAHOO FINANCE</div>
+        <div class="disclaimer">NOT FINANCIAL ADVICE · CONSULT A SEBI-REGISTERED ADVISOR · DATA VIA YAHOO FINANCE</div>
     </div>
-    """, unsafe_allow_html=True)
-# ─────────────────────────────────────────
+    </body>
+    </html>
+    """, height=900, scrolling=True)
 # PAGE: STOCK ANALYSIS
 # ─────────────────────────────────────────
 elif st.session_state.page == "stocks":

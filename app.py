@@ -405,6 +405,7 @@ if st.session_state.page == "home":
     <!DOCTYPE html>
     <html>
     <head>
+    <meta name="google-site-verification" content="bmHLKb9zYSASfbGDTwVeuGIOa5UmxsHatc6299TxVRw" />
     {load_css().replace('<style>','<style>')}
     <style>
     body {{ margin: 0; background: #0A0F1E; color: #E7ECF6; font-family: 'Inter', sans-serif; }}

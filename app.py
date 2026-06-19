@@ -209,19 +209,7 @@ with st.sidebar:
         st.session_state.home_expanded = False
         st.rerun()
 
-    st.markdown("---")
-    st.markdown('<div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--txt-3);text-transform:uppercase;margin-bottom:8px">Timezone</div>', unsafe_allow_html=True)
-    st.session_state.timezone = st.selectbox("", 
-        ["India (IST)", "UAE (GST)", "UK (GMT/BST)", "US Eastern", "US Pacific", "Singapore"],
-        index=["India (IST)", "UAE (GST)", "UK (GMT/BST)", "US Eastern", "US Pacific", "Singapore"].index(st.session_state.timezone),
-        key="tz_select", label_visibility="collapsed"
-    )
-    st.markdown('<div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--txt-3);text-transform:uppercase;margin-bottom:8px;margin-top:8px">Language</div>', unsafe_allow_html=True)
-    st.session_state.language = st.selectbox("",
-        ["English", "Hindi"],
-        index=["English", "Hindi"].index(st.session_state.language),
-        key="lang_select", label_visibility="collapsed"
-    )
+   
 
 # --- Constants ---
 TIMEZONES = {

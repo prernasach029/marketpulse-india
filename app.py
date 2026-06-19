@@ -24,98 +24,125 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+from styles import load_css
+st.markdown(load_css(),unsafe_allow_html=True)
+st.sidebar.image("assets/marketpulse-logo-v2.svg",width=180)
+
 st.markdown("""
 <style>
-    [data-testid="stSidebar"] { background-color: #13151a; }
     div[data-testid="stSidebarNav"] { display: none; }
-    .block-container { padding-top: 1.5rem; }
+
     .feature-card {
-        background: #1c1f2e;
-        border: 1px solid #2a2d3e;
+        background: var(--panel);
+        border: 1px solid var(--line-soft);
         border-radius: 10px;
         padding: 22px;
         margin-bottom: 14px;
     }
-    .feature-title { font-size: 1em; font-weight: 600; margin-bottom: 6px; }
-    .feature-desc { color: #999; font-size: 0.87em; line-height: 1.6; }
+    .feature-title {
+        font-size: 1em;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: var(--txt);
+        font-family: var(--sans);
+    }
+    .feature-desc {
+        color: var(--txt-2);
+        font-size: 0.87em;
+        line-height: 1.6;
+    }
     .tag {
         display: inline-block;
-        background: #2a2d3e;
-        color: #999;
+        background: var(--accent-soft);
+        color: var(--accent);
         font-size: 0.72em;
         padding: 2px 8px;
         border-radius: 4px;
         margin-right: 4px;
         margin-top: 6px;
+        font-family: var(--mono);
+        border: 1px solid var(--accent-line);
     }
     .bull-box {
-        background: #0d1f14;
-        border-left: 3px solid #3d9970;
+        background: var(--up-soft);
+        border-left: 3px solid var(--up);
         padding: 14px 18px;
         border-radius: 6px;
         margin: 8px 0;
         font-size: 0.91em;
         line-height: 1.7;
+        color: var(--txt);
     }
     .bear-box {
-        background: #1f0d0d;
-        border-left: 3px solid #c0392b;
+        background: var(--down-soft);
+        border-left: 3px solid var(--down);
         padding: 14px 18px;
         border-radius: 6px;
         margin: 8px 0;
         font-size: 0.91em;
         line-height: 1.7;
+        color: var(--txt);
     }
     .signal-box {
-        background: #16191f;
-        border: 1px solid #3a3d5c;
+        background: var(--panel);
+        border: 1px solid var(--accent-line);
         padding: 14px 18px;
         border-radius: 6px;
         margin: 8px 0;
         font-size: 0.93em;
+        color: var(--txt);
+        font-family: var(--mono);
     }
     .tip-box {
-        background: #1a1c14;
-        border-left: 3px solid #a89132;
+        background: var(--amber-soft);
+        border-left: 3px solid var(--amber);
         padding: 14px 18px;
         border-radius: 6px;
         margin: 8px 0;
         font-size: 0.91em;
         line-height: 1.7;
+        color: var(--txt);
     }
     .summary-box {
-        background: #16191f;
-        border: 1px solid #2a2d3e;
+        background: var(--panel);
+        border: 1px solid var(--line-soft);
         padding: 16px 20px;
         border-radius: 8px;
         margin: 8px 0;
         line-height: 1.7;
         font-size: 0.93em;
-        color: #ccc;
+        color: var(--txt-2);
     }
     .news-card {
-        background: #16191f;
-        border: 1px solid #2a2d3e;
+        background: var(--panel);
+        border: 1px solid var(--line-soft);
         border-radius: 8px;
         padding: 14px 18px;
         margin-bottom: 10px;
     }
-    .news-title { font-size: 0.95em; font-weight: 500; line-height: 1.5; margin-bottom: 6px; }
-    .news-meta { font-size: 0.77em; color: #777; }
-    .news-source { color: #aaa; font-weight: 500; }
+    .news-title {
+        font-size: 0.95em;
+        font-weight: 500;
+        line-height: 1.5;
+        margin-bottom: 6px;
+        color: var(--txt);
+    }
+    .news-meta { font-size: 0.77em; color: var(--txt-3); }
+    .news-source { color: var(--txt-2); font-weight: 500; font-family: var(--mono); }
     .chat-header {
-        background: #16191f;
-        border: 1px solid #2a2d3e;
+        background: var(--panel);
+        border: 1px solid var(--line-soft);
         border-radius: 8px;
         padding: 14px 18px;
         margin-bottom: 16px;
         font-size: 0.9em;
-        color: #aaa;
+        color: var(--txt-2);
+        font-family: var(--mono);
     }
     [data-testid="stChatMessage"] {
-        background: #16191f;
-        border-radius: 8px;
-        border: 1px solid #2a2d3e;
+        background: var(--panel) !important;
+        border-radius: 8px !important;
+        border: 1px solid var(--line-soft) !important;
         margin-bottom: 8px;
     }
 </style>
@@ -137,8 +164,12 @@ if "language" not in st.session_state:
 
 # --- Sidebar ---
 with st.sidebar:
-    st.markdown("### MarketPulse India")
-    st.markdown("---")
+    st.markdown("""
+    <div style="padding: 4px 0 12px 0; border-bottom: 1px solid var(--line); margin-bottom: 12px;">
+        <div style="font-family: var(--sans); font-weight: 700; font-size: 15px; color: var(--txt); letter-spacing: -0.01em;">MarketPulse</div>
+        <div style="font-family: var(--mono); font-size: 9.5px; color: var(--txt-3); letter-spacing: 0.12em; margin-top: 3px;">INDIA · NSE ANALYTICS</div>
+    </div>
+    """, unsafe_allow_html=True)
 
     with st.expander("Home", expanded=st.session_state.home_expanded):
         if st.button("Overview", use_container_width=True, key="nav_home"):
@@ -169,7 +200,7 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
-    st.markdown("<div style='font-size:0.8em; color:#666'>Preferences</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; color:var(--txt-3); text-transform:uppercase; margin-bottom:8px'>Preferences</div>", unsafe_allow_html=True)
     st.session_state.timezone = st.selectbox(
         "Timezone",
         ["India (IST)", "UAE (GST)", "UK (GMT/BST)", "US Eastern", "US Pacific", "Singapore"],

@@ -27,6 +27,11 @@ st.set_page_config(
 
 from styles import load_css
 st.markdown(load_css(),unsafe_allow_html=True)
+st.markdown('<meta name="google-site-verification" content="bmHLKb9zYSASfbGDTwVeuGIOa5UmxsHatc6299TxVRw" />', unsafe_allow_html=True)
+st.markdown("""
+<meta name="description" content="MarketPulse India — NSE stock risk analysis using EVT, HMM, FinBERT and AI insights for Indian retail investors.">
+<meta name="keywords" content="MarketPulse India, NSE stock analysis, Indian stock risk, EVT, HMM, FinBERT">
+""", unsafe_allow_html=True)
 st.sidebar.image("assets/marketpulse-logo-v2.svg",width=180)
 
 st.markdown("""

@@ -6,6 +6,10 @@ from groq import Groq
 load_dotenv()
 st.set_page_config(page_title="AI Chatbot", layout="wide")
 
+from styles import load_css
+st.markdown(load_css(), unsafe_allow_html=True)
+st.sidebar.image("assets/marketpulse-logo-v2.svg", width=180)
+
 st.markdown("""
 <style>
     .chat-header {

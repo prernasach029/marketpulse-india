@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarketPulse · Earnings</title>
+<link rel="stylesheet" href="theme.css">
+<style>
+  .stock-head{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+  .stock-logo{width:42px;height:42px;border-radius:10px;flex:none;background:linear-gradient(145deg,#1a2540,#0f1830);border:1px solid var(--line);display:grid;place-items:center;font-weight:800;font-size:17px;color:var(--accent);font-family:var(--mono)}
+  .stock-head .co{font-size:20px;font-weight:700;letter-spacing:-.02em}
+  .stock-head .meta{font-family:var(--mono);font-size:11px;color:var(--txt-3);letter-spacing:.06em;margin-top:4px}
+  .metrics{grid-template-columns:repeat(4,1fr);margin-bottom:14px}
+  .panel.kpi .k-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--txt-3);text-transform:uppercase}
+  .panel.kpi .k-val{font-family:var(--mono);font-size:24px;font-weight:600;margin-top:10px}
+  .panel.kpi .k-foot{font-size:11px;color:var(--txt-2);margin-top:6px}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  @media(max-width:1180px){.split{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}
+  .bars{display:flex;align-items:flex-end;gap:14px;height:150px;padding:0 2px}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}
+  .bar-col .bar{width:100%;max-width:42px;border-radius:4px 4px 0 0;position:relative;transition:height .8s cubic-bezier(.3,1,.4,1)}
+  .bar-col .bv{font-family:var(--mono);font-size:10px;font-weight:600;position:absolute;top:-17px;left:50%;transform:translateX(-50%);white-space:nowrap;color:var(--txt-2)}
+  .bar-col .bl{font-family:var(--mono);font-size:9px;color:var(--txt-3)}
+  .chart-box{height:160px;width:100%;position:relative;margin-top:4px}
+  .chart-box svg{width:100%;height:100%;display:block;overflow:visible}
+  table{width:100%;border-collapse:collapse;margin-top:6px}
+  thead th{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--txt-3);text-transform:uppercase;text-align:right;padding:0 0 10px;font-weight:500;border-bottom:1px solid var(--line)}
+  thead th:first-child{text-align:left}
+  tbody td{padding:10px 0;border-bottom:1px solid var(--line-soft);font-family:var(--mono);font-size:12px;text-align:right}
+  tbody tr:last-child td{border-bottom:none}
+  tbody td:first-child{text-align:left;color:var(--txt-2)}
+  .res{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px}
+  .res.beat{background:var(--up-soft);color:var(--up)}.res.miss{background:var(--down-soft);color:var(--down)}
+  .ai-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:4px}
+  @media(max-width:760px){.ai-grid{grid-template-columns:1fr}}
+  .ab{border:1px solid var(--line-soft);border-radius:8px;padding:13px 15px;background:var(--panel-2)}
+  .ab .abh{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:9px;color:var(--txt)}
+  .ab ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+  .ab li{font-size:12px;color:var(--txt-2);line-height:1.5;padding-left:14px;position:relative}
+  .ab li::before{content:"";position:absolute;left:0;top:7px;width:4px;height:4px;border-radius:1px;background:var(--accent)}
+  .ab.str li::before{background:var(--up)}.ab.con li::before{background:var(--amber)}
+  .bottom{margin-top:14px;display:flex;gap:11px;align-items:center;background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:8px;padding:13px 16px;font-size:12.5px;color:var(--txt);line-height:1.5}
+  .bottom .vd{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.08em;padding:4px 11px;border-radius:5px;background:var(--up-soft);color:var(--up);flex:none}
+  .legend{display:flex;gap:16px;font-family:var(--mono);font-size:10px;color:var(--txt-2);margin-top:8px}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:6px;vertical-align:-1px}
+</style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 4 6-8"/><path d="M21 7v4h-4"/></svg></div>
+      <div><div class="name">MarketPulse</div><div class="sub">INDIA · NSE TERMINAL</div></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-label">Home</div>
+      <a class="nav-item" href="Overview.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</a>
+      <a class="nav-item" href="MarketPulse Terminal.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 2 5-7"/></svg>Stock Analysis</a>
+      <a class="nav-item" href="News Feed.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>News Feed</a>
+      <a class="nav-item" href="Portfolio.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 13h4l2 5 4-12 2 7h6"/></svg>Portfolio</a>
+      <a class="nav-item active" href="Earnings Analysis.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>Earnings Analysis</a>
+      <div class="nav-label">Assistant</div>
+      <a class="nav-item" href="AI Chatbot.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI Chatbot</a>
+    </nav>
+    <div class="prefs">
+      <div class="pref-row"><label>Timezone</label><select><option>India (IST)</option><option>UAE (GST)</option><option>UK (GMT/BST)</option><option>US Eastern</option><option>Singapore</option></select></div>
+      <div class="pref-row"><label>Language</label><select><option>English</option><option>Hindi</option></select></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="tickerbar"><div class="tick-label"><span class="dot"></span>LIVE · NSE</div><div class="tick-track" id="track"></div></div>
+    <header class="topbar">
+      <div><h1>Earnings Analysis</h1><div class="crumb">HOME / EARNINGS / RELIANCE.NS</div></div>
+      <div class="search">
+        <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input value="RELIANCE.NS" spellcheck="false"></div>
+        <div class="sep"></div>
+        <div class="field sm"><input value="Reliance Industries" spellcheck="false"></div>
+        <button>Get Earnings</button>
+      </div>
+    </header>
+
+    <div class="scroll">
+      <div class="stock-head">
+        <div class="stock-logo">R</div>
+        <div><div class="co">Reliance Industries</div><div class="meta">RELIANCE.NS · QUARTERLY · FY26</div></div>
+      </div>
+
+      <div class="grid metrics">
+        <div class="panel kpi"><div class="k-label">P/E Ratio</div><div class="k-val">24.8</div><div class="k-foot">Trailing twelve months</div></div>
+        <div class="panel kpi"><div class="k-label">EPS (TTM)</div><div class="k-val">₹118.9</div><div class="k-foot">Earnings per share</div></div>
+        <div class="panel kpi"><div class="k-label">Revenue (TTM)</div><div class="k-val">₹9.74L Cr</div><div class="k-foot">Total revenue, last 12 mo</div></div>
+        <div class="panel kpi"><div class="k-label">Profit Margin</div><div class="k-val up">8.42%</div><div class="k-foot">Net margin</div></div>
+      </div>
+
+      <div class="split">
+        <div class="panel">
+          <div class="panel-h"><div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><rect x="6" y="9" width="3" height="9"/><rect x="11" y="6" width="3" height="12"/><rect x="16" y="11" width="3" height="7"/></svg></span>Revenue Trend</div><span class="tag">₹ CRORE</span></div>
+          <div class="bars" data-bars="rev">
+            <div class="bar-col"><div class="bar" data-h="76" style="background:linear-gradient(180deg,#3a6fd6,#1b4a9e)"><span class="bv">2.31L</span></div><span class="bl">Q1</span></div>
+            <div class="bar-col"><div class="bar" data-h="81" style="background:linear-gradient(180deg,#3a6fd6,#1b4a9e)"><span class="bv">2.46L</span></div><span class="bl">Q2</span></div>
+            <div class="bar-col"><div class="bar" data-h="79" style="background:linear-gradient(180deg,#3a6fd6,#1b4a9e)"><span class="bv">2.40L</span></div><span class="bl">Q3</span></div>
+            <div class="bar-col"><div class="bar" data-h="88" style="background:linear-gradient(180deg,#2563EB,#1746b0)"><span class="bv">2.57L</span></div><span class="bl">Q4</span></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><rect x="6" y="11" width="3" height="7"/><rect x="11" y="8" width="3" height="10"/><rect x="16" y="6" width="3" height="12"/></svg></span>Net Profit Trend</div><span class="tag">₹ CRORE</span></div>
+          <div class="bars" data-bars="profit">
+            <div class="bar-col"><div class="bar" data-h="68" style="background:linear-gradient(180deg,#16C77E,#0e7f52)"><span class="bv up">17,955</span></div><span class="bl">Q1</span></div>
+            <div class="bar-col"><div class="bar" data-h="74" style="background:linear-gradient(180deg,#16C77E,#0e7f52)"><span class="bv up">19,323</span></div><span class="bl">Q2</span></div>
+            <div class="bar-col"><div class="bar" data-h="62" style="background:linear-gradient(180deg,#16C77E,#0e7f52)"><span class="bv up">16,563</span></div><span class="bl">Q3</span></div>
+            <div class="bar-col"><div class="bar" data-h="84" style="background:linear-gradient(180deg,#16C77E,#0e7f52)"><span class="bv up">21,243</span></div><span class="bl">Q4</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:14px">
+        <div class="panel-h"><div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 13l3-3 3 2 5-6"/></svg></span>EPS — Actual vs Estimate</div><span class="tag">LAST 6 QUARTERS</span></div>
+        <div class="chart-box" id="epsChart"></div>
+        <div class="legend"><span><i style="background:var(--accent)"></i>Actual</span><span><i style="background:var(--txt-3)"></i>Estimate</span></div>
+        <table>
+          <thead><tr><th>Quarter</th><th>Estimate</th><th>Actual</th><th>Surprise %</th><th>Result</th></tr></thead>
+          <tbody>
+            <tr><td>Q3 FY25</td><td>26.10</td><td>25.40</td><td class="down">−2.68%</td><td><span class="res miss">Missed</span></td></tr>
+            <tr><td>Q4 FY25</td><td>28.40</td><td>29.80</td><td class="up">+4.93%</td><td><span class="res beat">Beat</span></td></tr>
+            <tr><td>Q1 FY26</td><td>27.90</td><td>28.65</td><td class="up">+2.69%</td><td><span class="res beat">Beat</span></td></tr>
+            <tr><td>Q2 FY26</td><td>30.20</td><td>31.05</td><td class="up">+2.81%</td><td><span class="res beat">Beat</span></td></tr>
+            <tr><td>Q3 FY26</td><td>29.50</td><td>28.10</td><td class="down">−4.75%</td><td><span class="res miss">Missed</span></td></tr>
+            <tr><td>Q4 FY26</td><td>31.80</td><td>33.40</td><td class="up">+5.03%</td><td><span class="res beat">Beat</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h"><div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/></svg></span>AI Earnings Summary</div><span class="tag">LLAMA 3.3 70B</span></div>
+        <div class="summary" style="font-size:13px;line-height:1.7;color:var(--txt-2);margin-bottom:14px"><b style="color:var(--txt)">Reliance shows healthy, broadly improving earnings.</b> Revenue and net profit both hit fresh quarterly highs in Q4 FY26, and the company has beaten EPS estimates in 4 of the last 6 quarters. Margins are stable in the mid-8% range.</div>
+        <div class="ai-grid">
+          <div class="ab str"><div class="abh">Strengths</div><ul><li>Net profit at a record ₹21,243 Cr in Q4, up ~28% QoQ.</li><li>Consistent EPS beats — 4 of last 6 quarters above estimate.</li><li>Revenue diversification reducing reliance on cyclical O2C.</li></ul></div>
+          <div class="ab con"><div class="abh">Concerns</div><ul><li>Two EPS misses tied to refining-margin softness.</li><li>P/E of 24.8 is a modest premium to sector median.</li><li>Heavy capex cycle pressures near-term free cash flow.</li></ul></div>
+        </div>
+        <div class="bottom"><span class="vd">FAIRLY VALUED</span><div><b>Bottom line:</b> Earnings quality is solid and trending up. The P/E is reasonable for the growth profile — a steady compounder rather than a deep-value pick.</div></div>
+      </div>
+
+      <div class="disclaimer">DATA VIA YAHOO FINANCE · AI SUMMARY BY LLAMA 3.3 70B · NOT FINANCIAL ADVICE</div>
+    </div>
+  </div>
+<script src="ticker.js"></script>
+<script>
+  requestAnimationFrame(()=>{ setTimeout(()=>{
+    document.querySelectorAll('.bars .bar').forEach(b=>{ b.style.height=b.dataset.h+'%'; });
+  },150); });
+
+  // EPS line chart
+  (function(){
+    const est=[26.10,28.40,27.90,30.20,29.50,31.80];
+    const act=[25.40,29.80,28.65,31.05,28.10,33.40];
+    const W=560,H=160, all=[...est,...act];
+    const min=Math.min(...all),max=Math.max(...all),pad=(max-min)*0.25,lo=min-pad,hi=max+pad,n=est.length;
+    const x=i=>30+(i/(n-1))*(W-30), y=v=>H-12-((v-lo)/(hi-lo))*(H-30);
+    const path=a=>a.map((v,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ');
+    const dots=(a,c)=>a.map((v,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3" fill="${c}"/>`).join('');
+    const grid=[0,.33,.66,1].map(f=>`<line class="grid-line" x1="30" y1="${(12+f*(H-30)).toFixed(1)}" x2="${W}" y2="${(12+f*(H-30)).toFixed(1)}"/>`).join('');
+    document.getElementById('epsChart').innerHTML=
+      `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${grid}
+        <path d="${path(est)}" fill="none" stroke="#5E6C8C" stroke-width="2" stroke-dasharray="4 3"/>
+        <path d="${path(act)}" fill="none" stroke="#2563EB" stroke-width="2.4" stroke-linejoin="round"/>
+        ${dots(est,'#5E6C8C')}${dots(act,'#2563EB')}</svg>`;
+  })();
+</script>
+</body>
+</html>

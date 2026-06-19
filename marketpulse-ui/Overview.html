@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarketPulse · Overview</title>
+<link rel="stylesheet" href="theme.css">
+<style>
+  .snap{grid-template-columns:repeat(4,1fr);margin-bottom:14px}
+  .snap .panel{padding:15px 17px}
+  .snap .l{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--txt-3);text-transform:uppercase}
+  .snap .v{font-family:var(--mono);font-size:24px;font-weight:600;margin-top:10px;letter-spacing:-.01em}
+  .snap .c{font-family:var(--mono);font-size:11.5px;margin-top:6px;display:flex;gap:7px;align-items:center}
+  .split{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:14px}
+  @media(max-width:1180px){.split{grid-template-columns:1fr}.snap{grid-template-columns:repeat(2,1fr)}}
+  table{width:100%;border-collapse:collapse}
+  thead th{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--txt-3);text-transform:uppercase;text-align:right;padding:0 0 11px;font-weight:500;border-bottom:1px solid var(--line)}
+  thead th:first-child{text-align:left}
+  tbody td{padding:11px 0;border-bottom:1px solid var(--line-soft);font-family:var(--mono);font-size:12.5px;text-align:right}
+  tbody tr:last-child td{border-bottom:none}
+  tbody td:first-child{text-align:left}
+  .wl-name{display:flex;align-items:center;gap:10px;font-family:var(--sans)}
+  .wl-logo{width:26px;height:26px;border-radius:6px;flex:none;display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:11px;background:#152037;border:1px solid var(--line);color:var(--txt-2)}
+  .wl-tk{font-family:var(--mono);font-size:10px;color:var(--txt-3);letter-spacing:.04em}
+  .risk-chip{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px}
+  .rc-g{background:var(--up-soft);color:var(--up)}.rc-a{background:var(--amber-soft);color:var(--amber)}.rc-r{background:var(--down-soft);color:var(--down)}
+  .mods{display:flex;flex-direction:column;gap:10px}
+  .mod{display:flex;gap:13px;align-items:flex-start;padding:13px 14px;border:1px solid var(--line-soft);border-radius:9px;background:var(--panel-2);transition:border-color .12s,transform .12s;cursor:pointer}
+  .mod:hover{border-color:var(--accent-line);transform:translateX(2px)}
+  .mod .mi{width:34px;height:34px;border-radius:8px;flex:none;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
+  .mod .mi svg{width:17px;height:17px;stroke-width:1.8}
+  .mod .mt{font-size:13px;font-weight:600;margin-bottom:3px}
+  .mod .md{font-size:11.5px;color:var(--txt-2);line-height:1.5}
+  .mod .tags{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+  .mod .tg{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--txt-3);border:1px solid var(--line);padding:2px 6px;border-radius:4px}
+  .hero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:20px}
+  .hero h2{font-size:23px;font-weight:700;letter-spacing:-.02em}
+  .hero p{color:var(--txt-2);font-size:13px;margin-top:6px;max-width:560px;line-height:1.6}
+  .hero .stamp{font-family:var(--mono);font-size:10.5px;color:var(--txt-3);text-align:right;line-height:1.7}
+</style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 4 6-8"/><path d="M21 7v4h-4"/></svg></div>
+      <div><div class="name">MarketPulse</div><div class="sub">INDIA · NSE TERMINAL</div></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-label">Home</div>
+      <a class="nav-item active" href="Overview.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</a>
+      <a class="nav-item" href="MarketPulse Terminal.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 2 5-7"/></svg>Stock Analysis</a>
+      <a class="nav-item" href="News Feed.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>News Feed</a>
+      <a class="nav-item" href="Portfolio.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 13h4l2 5 4-12 2 7h6"/></svg>Portfolio</a>
+      <a class="nav-item" href="Earnings Analysis.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>Earnings Analysis</a>
+      <div class="nav-label">Assistant</div>
+      <a class="nav-item" href="AI Chatbot.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI Chatbot</a>
+    </nav>
+    <div class="prefs">
+      <div class="pref-row"><label>Timezone</label><select><option>India (IST)</option><option>UAE (GST)</option><option>UK (GMT/BST)</option><option>US Eastern</option><option>Singapore</option></select></div>
+      <div class="pref-row"><label>Language</label><select><option>English</option><option>Hindi</option></select></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="tickerbar"><div class="tick-label"><span class="dot"></span>LIVE · NSE</div><div class="tick-track" id="track"></div></div>
+    <header class="topbar">
+      <div><h1>Overview</h1><div class="crumb">HOME / OVERVIEW</div></div>
+      <div class="search"><div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input placeholder="Search ticker…" spellcheck="false"></div><button class="solo" style="border-radius:0 7px 7px 0">Go</button></div>
+    </header>
+
+    <div class="scroll">
+      <div class="hero">
+        <div>
+          <h2>Good evening, Prerna.</h2>
+          <p>Multi-model risk intelligence for NSE-listed equities — tail risk via EVT, volatility regimes via HMM, and news sentiment via FinBERT, distilled into plain-English signals.</p>
+        </div>
+        <div class="stamp">19 JUN 2026 · 15:42 IST<br>MARKET <span class="up">OPEN</span> · CLOSES 15:30<br>SESSION: REGULAR</div>
+      </div>
+
+      <div class="grid snap">
+        <div class="panel"><div class="l">NIFTY 50</div><div class="v">24,318.40</div><div class="c up"><span class="pill up">▲ 0.62%</span><span>+150.20</span></div></div>
+        <div class="panel"><div class="l">SENSEX</div><div class="v">79,943.71</div><div class="c up"><span class="pill up">▲ 0.55%</span><span>+438.10</span></div></div>
+        <div class="panel"><div class="l">India VIX</div><div class="v" style="color:var(--amber)">14.82</div><div class="c"><span class="pill down">▲ 3.10%</span><span class="down">elevated</span></div></div>
+        <div class="panel"><div class="l">Adv / Decl</div><div class="v">1,284 / 906</div><div class="c up"><span class="pill up">BREADTH +</span><span>58% advancing</span></div></div>
+      </div>
+
+      <div class="split">
+        <div class="panel">
+          <div class="panel-h"><div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5h18M3 12h18M3 19h18"/></svg></span>Watchlist</div><span class="tag">RISK-RANKED</span></div>
+          <table>
+            <thead><tr><th>Stock</th><th>Last</th><th>Chg %</th><th>Regime</th><th>Risk</th></tr></thead>
+            <tbody>
+              <tr><td><div class="wl-name"><div class="wl-logo">R</div><div>Reliance Inds.<div class="wl-tk">RELIANCE.NS</div></div></div></td><td>2,948.65</td><td class="up">+1.17%</td><td style="color:var(--amber)">High Vol</td><td><span class="risk-chip rc-a">61 · Amber</span></td></tr>
+              <tr><td><div class="wl-name"><div class="wl-logo">T</div><div>TCS<div class="wl-tk">TCS.NS</div></div></div></td><td>4,182.30</td><td class="up">+0.42%</td><td style="color:var(--up)">Low Vol</td><td><span class="risk-chip rc-g">28 · Green</span></td></tr>
+              <tr><td><div class="wl-name"><div class="wl-logo">H</div><div>HDFC Bank<div class="wl-tk">HDFCBANK.NS</div></div></div></td><td>1,694.05</td><td class="down">−0.38%</td><td style="color:var(--up)">Low Vol</td><td><span class="risk-chip rc-g">33 · Green</span></td></tr>
+              <tr><td><div class="wl-name"><div class="wl-logo">I</div><div>Infosys<div class="wl-tk">INFY.NS</div></div></div></td><td>1,571.90</td><td class="up">+0.91%</td><td style="color:var(--amber)">High Vol</td><td><span class="risk-chip rc-a">47 · Amber</span></td></tr>
+              <tr><td><div class="wl-name"><div class="wl-logo">A</div><div>Adani Ent.<div class="wl-tk">ADANIENT.NS</div></div></div></td><td>2,830.55</td><td class="down">−2.14%</td><td style="color:var(--down)">High Vol</td><td><span class="risk-chip rc-r">78 · Red</span></td></tr>
+              <tr><td><div class="wl-name"><div class="wl-logo">W</div><div>Wipro<div class="wl-tk">WIPRO.NS</div></div></div></td><td>542.20</td><td class="up">+0.33%</td><td style="color:var(--up)">Low Vol</td><td><span class="risk-chip rc-g">31 · Green</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg></span>Modules</div><span class="tag">5 TOOLS</span></div>
+          <div class="mods">
+            <a class="mod" href="MarketPulse Terminal.html"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 2 5-7"/></svg></div><div><div class="mt">Stock Analysis</div><div class="md">Full risk breakdown — EVT tail risk, HMM regime, FinBERT sentiment, and a buy/hold/sell signal.</div><div class="tags"><span class="tg">EVT</span><span class="tg">HMM</span><span class="tg">FinBERT</span></div></div></a>
+            <a class="mod" href="Earnings Analysis.html"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg></div><div><div class="mt">Earnings Analysis</div><div class="md">Quarterly revenue, profit, and EPS beat/miss history with an AI earnings-health summary.</div><div class="tags"><span class="tg">EPS</span><span class="tg">Revenue</span></div></div></a>
+            <a class="mod" href="News Feed.html"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div><div><div class="mt">News Feed</div><div class="md">Latest financial headlines per stock — timezone and language aware, refreshed each visit.</div><div class="tags"><span class="tg">Multi-source</span></div></div></a>
+            <a class="mod" href="Portfolio.html"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 13h4l2 5 4-12 2 7h6"/></svg></div><div><div class="mt">Portfolio Tracker</div><div class="md">Rank up to 5 stocks by risk and get a portfolio health score with AI rebalancing advice.</div><div class="tags"><span class="tg">Ranked</span><span class="tg">Health score</span></div></div></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="disclaimer">NOT FINANCIAL ADVICE · CONSULT A SEBI-REGISTERED ADVISOR BEFORE INVESTING · DATA VIA YAHOO FINANCE</div>
+    </div>
+  </div>
+<script src="ticker.js"></script>
+</body>
+</html>

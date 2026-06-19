@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarketPulse · Portfolio</title>
+<link rel="stylesheet" href="theme.css">
+<style>
+  .split{display:grid;grid-template-columns:1fr 320px;gap:14px;margin-bottom:14px}
+  @media(max-width:1180px){.split{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse}
+  thead th{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--txt-3);text-transform:uppercase;text-align:right;padding:0 0 11px;font-weight:500;border-bottom:1px solid var(--line)}
+  thead th:first-child{text-align:left}
+  tbody td{padding:12px 0;border-bottom:1px solid var(--line-soft);font-family:var(--mono);font-size:12.5px;text-align:right}
+  tbody tr:last-child td{border-bottom:none}
+  tbody td:first-child{text-align:left}
+  .rank{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:5px;background:var(--panel-2);border:1px solid var(--line);font-family:var(--mono);font-size:10px;color:var(--txt-3);margin-right:11px}
+  .wl-name{display:flex;align-items:center;font-family:var(--sans)}
+  .co-cell{display:flex;flex-direction:column}
+  .co-cell .tk{font-family:var(--mono);font-size:10px;color:var(--txt-3)}
+  .risk-chip{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px}
+  .rc-g{background:var(--up-soft);color:var(--up)}.rc-a{background:var(--amber-soft);color:var(--amber)}.rc-r{background:var(--down-soft);color:var(--down)}
+  .scorebar{display:inline-flex;align-items:center;gap:8px}
+  .scorebar .mini{width:54px;height:5px;border-radius:3px;background:var(--panel-2);overflow:hidden}
+  .scorebar .mini i{display:block;height:100%}
+  .health{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:6px}
+  .gauge{position:relative;width:150px;height:150px}
+  .gauge .score{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .gauge .score .n{font-family:var(--mono);font-size:38px;font-weight:700;line-height:1}
+  .gauge .score .d{font-family:var(--mono);font-size:10px;color:var(--txt-3);margin-top:3px}
+  .health .lab{font-weight:700;font-size:14px;margin-top:14px;display:inline-flex;align-items:center;gap:8px}
+  .health .lab .dot{width:9px;height:9px;border-radius:50%}
+  .health .sub{font-size:11.5px;color:var(--txt-2);margin-top:8px;line-height:1.5}
+  .bars{display:flex;align-items:flex-end;gap:16px;height:150px;padding:0 4px}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}
+  .bar-col .bar{width:100%;max-width:48px;border-radius:5px 5px 0 0;position:relative;transition:height .8s cubic-bezier(.3,1,.4,1)}
+  .bar-col .bv{font-family:var(--mono);font-size:11px;font-weight:600;position:absolute;top:-19px;left:50%;transform:translateX(-50%)}
+  .bar-col .bl{font-family:var(--mono);font-size:9.5px;color:var(--txt-3);letter-spacing:.04em}
+  .advice{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px}
+  @media(max-width:760px){.advice{grid-template-columns:1fr}}
+  .ac{border-radius:8px;padding:13px 15px;border:1px solid var(--line-soft);background:var(--panel-2)}
+  .ac .ah{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+  .ac.hold .ah{color:var(--up)}.ac.watch .ah{color:var(--amber)}.ac.reduce .ah{color:var(--down)}
+  .ac ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .ac li{font-size:12px;color:var(--txt-2);display:flex;align-items:center;gap:8px;font-family:var(--mono)}
+  .ac li b{color:var(--txt);font-weight:600}
+  .action{display:flex;gap:11px;align-items:flex-start;margin-top:14px;background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:8px;padding:13px 16px;font-size:12.5px;color:var(--txt);line-height:1.6}
+  .action svg{width:16px;height:16px;color:var(--accent);flex:none;margin-top:1px}
+  .action b{font-weight:600}
+  .form-strip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--panel-2);border:1px solid var(--line-soft);border-radius:9px;padding:12px 14px;margin-bottom:16px}
+  .form-strip .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--txt-3);text-transform:uppercase;margin-right:2px}
+  .chip-in{display:flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 11px;font-family:var(--mono);font-size:11.5px;color:var(--txt)}
+  .chip-in .x{color:var(--txt-3);cursor:pointer}
+  .chip-add{border:1px dashed var(--line);border-radius:6px;padding:6px 12px;font-family:var(--mono);font-size:11.5px;color:var(--txt-3);cursor:pointer}
+  .form-strip button{margin-left:auto;background:var(--accent);color:#fff;border:none;height:34px;padding:0 18px;border-radius:7px;font-weight:600;font-size:12.5px;cursor:pointer}
+</style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 4 6-8"/><path d="M21 7v4h-4"/></svg></div>
+      <div><div class="name">MarketPulse</div><div class="sub">INDIA · NSE TERMINAL</div></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-label">Home</div>
+      <a class="nav-item" href="Overview.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</a>
+      <a class="nav-item" href="MarketPulse Terminal.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 2 5-7"/></svg>Stock Analysis</a>
+      <a class="nav-item" href="News Feed.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>News Feed</a>
+      <a class="nav-item active" href="Portfolio.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 13h4l2 5 4-12 2 7h6"/></svg>Portfolio</a>
+      <a class="nav-item" href="Earnings Analysis.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>Earnings Analysis</a>
+      <div class="nav-label">Assistant</div>
+      <a class="nav-item" href="AI Chatbot.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI Chatbot</a>
+    </nav>
+    <div class="prefs">
+      <div class="pref-row"><label>Timezone</label><select><option>India (IST)</option><option>UAE (GST)</option><option>UK (GMT/BST)</option><option>US Eastern</option><option>Singapore</option></select></div>
+      <div class="pref-row"><label>Language</label><select><option>English</option><option>Hindi</option></select></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="tickerbar"><div class="tick-label"><span class="dot"></span>LIVE · NSE</div><div class="tick-track" id="track"></div></div>
+    <header class="topbar">
+      <div><h1>Portfolio Tracker</h1><div class="crumb">HOME / PORTFOLIO · 4 HOLDINGS</div></div>
+      <div class="search"><button class="solo" style="border-radius:7px">Analyze Portfolio</button></div>
+    </header>
+
+    <div class="scroll">
+      <div class="form-strip">
+        <span class="lbl">Holdings</span>
+        <span class="chip-in">RELIANCE.NS<span class="x">✕</span></span>
+        <span class="chip-in">TCS.NS<span class="x">✕</span></span>
+        <span class="chip-in">HDFCBANK.NS<span class="x">✕</span></span>
+        <span class="chip-in">INFY.NS<span class="x">✕</span></span>
+        <span class="chip-add">+ Add ticker</span>
+        <button>Re-run Analysis</button>
+      </div>
+
+      <div class="split">
+        <div class="panel">
+          <div class="panel-h"><div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5h18M3 12h18M3 19h18"/></svg></span>Risk Ranking</div><span class="tag">LOW → HIGH</span></div>
+          <table>
+            <thead><tr><th>Company</th><th>Risk Score</th><th>Label</th><th>VaR 99%</th><th>Regime</th><th>Sentiment</th></tr></thead>
+            <tbody>
+              <tr><td><div class="wl-name"><span class="rank">1</span><div class="co-cell">TCS<span class="tk">TCS.NS</span></div></div></td><td><div class="scorebar"><div class="mini"><i style="width:28%;background:var(--up)"></i></div>28</div></td><td><span class="risk-chip rc-g">Green</span></td><td class="down">−2.41%</td><td class="up">Low Vol</td><td>34/100</td></tr>
+              <tr><td><div class="wl-name"><span class="rank">2</span><div class="co-cell">HDFC Bank<span class="tk">HDFCBANK.NS</span></div></div></td><td><div class="scorebar"><div class="mini"><i style="width:33%;background:var(--up)"></i></div>33</div></td><td><span class="risk-chip rc-g">Green</span></td><td class="down">−2.78%</td><td class="up">Low Vol</td><td>40/100</td></tr>
+              <tr><td><div class="wl-name"><span class="rank">3</span><div class="co-cell">Infosys<span class="tk">INFY.NS</span></div></div></td><td><div class="scorebar"><div class="mini"><i style="width:47%;background:var(--amber)"></i></div>47</div></td><td><span class="risk-chip rc-a">Amber</span></td><td class="down">−3.10%</td><td style="color:var(--amber)">High Vol</td><td>52/100</td></tr>
+              <tr><td><div class="wl-name"><span class="rank">4</span><div class="co-cell">Reliance Inds.<span class="tk">RELIANCE.NS</span></div></div></td><td><div class="scorebar"><div class="mini"><i style="width:61%;background:var(--amber)"></i></div>61</div></td><td><span class="risk-chip rc-a">Amber</span></td><td class="down">−3.84%</td><td style="color:var(--amber)">High Vol</td><td>58/100</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/></svg></span>Portfolio Health</div></div>
+          <div class="health">
+            <div class="gauge">
+              <svg viewBox="0 0 150 150"><circle cx="75" cy="75" r="62" fill="none" stroke="#0D1424" stroke-width="13"/><circle id="hArc" cx="75" cy="75" r="62" fill="none" stroke="#16C77E" stroke-width="13" stroke-linecap="round" stroke-dasharray="389.6" stroke-dashoffset="389.6" transform="rotate(-90 75 75)"/></svg>
+              <div class="score"><div class="n" style="color:var(--up)">42</div><div class="d">/ 100</div></div>
+            </div>
+            <div class="lab" style="color:var(--up)"><span class="dot" style="background:var(--up)"></span>Well-Balanced</div>
+            <div class="sub">Average risk across 4 holdings sits in the <b style="color:var(--up)">lower-moderate</b> band. Diversification across IT, banking, and energy is cushioning tail risk.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:14px">
+        <div class="panel-h"><div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><rect x="6" y="10" width="3" height="8"/><rect x="11" y="6" width="3" height="12"/><rect x="16" y="13" width="3" height="5"/></svg></span>Risk Score by Stock</div><span class="tag">COMPOSITE 0–100</span></div>
+        <div class="bars" id="bars">
+          <div class="bar-col"><div class="bar" data-h="28" style="background:linear-gradient(180deg,#16C77E,#0e7f52)"><span class="bv up">28</span></div><span class="bl">TCS</span></div>
+          <div class="bar-col"><div class="bar" data-h="33" style="background:linear-gradient(180deg,#16C77E,#0e7f52)"><span class="bv up">33</span></div><span class="bl">HDFCBANK</span></div>
+          <div class="bar-col"><div class="bar" data-h="47" style="background:linear-gradient(180deg,#E0A33B,#9c6f1f)"><span class="bv" style="color:var(--amber)">47</span></div><span class="bl">INFY</span></div>
+          <div class="bar-col"><div class="bar" data-h="61" style="background:linear-gradient(180deg,#E0A33B,#9c6f1f)"><span class="bv" style="color:var(--amber)">61</span></div><span class="bl">RELIANCE</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h"><div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/></svg></span>AI Portfolio Advice</div><span class="tag">LLAMA 3.3 70B</span></div>
+        <div class="summary" style="font-size:13px;line-height:1.7;color:var(--txt-2);margin-bottom:14px">Your portfolio is <b style="color:var(--txt)">well-balanced</b> with two stable large caps anchoring it. The energy and one IT name carry elevated near-term volatility, but nothing in the book is in high-risk territory.</div>
+        <div class="advice">
+          <div class="ac hold"><div class="ah"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg>Hold</div><ul><li><b>TCS</b> · low vol, green</li><li><b>HDFC Bank</b> · low vol, green</li></ul></div>
+          <div class="ac watch"><div class="ah"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/></svg>Watch</div><ul><li><b>Infosys</b> · high vol</li><li><b>Reliance</b> · amber risk</li></ul></div>
+          <div class="ac reduce"><div class="ah"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14"/></svg>Reduce</div><ul><li style="color:var(--txt-3)">None flagged</li><li style="color:var(--txt-3)">— book is healthy —</li></ul></div>
+        </div>
+        <div class="action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg><div><b>One Action:</b> Hold your IT and banking core. Avoid adding to Reliance during this high-vol window — wait for the regime to normalise before increasing energy exposure.</div></div>
+      </div>
+
+      <div class="disclaimer">NOT FINANCIAL ADVICE · CONSULT A SEBI-REGISTERED ADVISOR BEFORE INVESTING · DATA VIA YAHOO FINANCE</div>
+    </div>
+  </div>
+<script src="ticker.js"></script>
+<script>
+  requestAnimationFrame(()=>{ setTimeout(()=>{
+    const arc=document.getElementById('hArc'), C=2*Math.PI*62;
+    arc.style.transition='stroke-dashoffset 1.1s cubic-bezier(.3,1,.4,1)';
+    arc.style.strokeDashoffset=C*(1-0.42);
+    document.querySelectorAll('#bars .bar').forEach(b=>{ b.style.height=(b.dataset.h/100*100)+'%'; });
+  },150); });
+</script>
+</body>
+</html>

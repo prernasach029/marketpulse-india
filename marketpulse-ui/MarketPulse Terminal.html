@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarketPulse · Stock Analysis</title>
+<link rel="stylesheet" href="theme.css">
+<style>
+  .stock-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:20px}
+  .stock-id{display:flex;align-items:center;gap:16px}
+  .stock-logo{width:46px;height:46px;border-radius:10px;flex:none;background:linear-gradient(145deg,#1a2540,#0f1830);border:1px solid var(--line);display:grid;place-items:center;font-weight:800;font-size:18px;color:var(--accent);font-family:var(--mono)}
+  .stock-id .co{font-size:21px;font-weight:700;letter-spacing:-.02em}
+  .stock-id .meta{font-family:var(--mono);font-size:11px;color:var(--txt-3);letter-spacing:.06em;margin-top:4px;display:flex;gap:10px;align-items:center}
+  .stock-id .badge{background:var(--accent-soft);color:#7ea6ff;padding:2px 7px;border-radius:4px;font-size:9.5px;letter-spacing:.1em}
+  .price-now{text-align:right}
+  .price-now .px{font-family:var(--mono);font-size:30px;font-weight:600;letter-spacing:-.01em;line-height:1}
+  .price-now .delta{font-family:var(--mono);font-size:13px;margin-top:6px;display:flex;gap:8px;justify-content:flex-end;align-items:center}
+  .metrics{grid-template-columns:repeat(4,1fr);margin-bottom:14px}
+  .panel.kpi .k-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--txt-3);text-transform:uppercase;display:flex;align-items:center;gap:6px}
+  .panel.kpi .k-val{font-family:var(--mono);font-size:26px;font-weight:600;margin-top:11px;letter-spacing:-.01em}
+  .panel.kpi .k-foot{font-size:11px;color:var(--txt-2);margin-top:7px;line-height:1.4}
+  .spark{position:absolute;right:14px;top:16px;opacity:.85}
+  .split{display:grid;grid-template-columns:1.15fr 1fr;gap:14px;margin-bottom:14px}
+  @media(max-width:1180px){.split{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}
+  .risk-wrap{display:flex;align-items:center;gap:22px}
+  .gauge{position:relative;width:130px;height:130px;flex:none}
+  .gauge .score{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .gauge .score .n{font-family:var(--mono);font-size:32px;font-weight:700;line-height:1}
+  .gauge .score .d{font-family:var(--mono);font-size:10px;color:var(--txt-3);margin-top:2px}
+  .risk-detail{flex:1}
+  .risk-label{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:15px;margin-bottom:10px}
+  .risk-label .dot{width:9px;height:9px;border-radius:50%}
+  .risk-bars{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+  .rb{display:grid;grid-template-columns:62px 1fr 42px;align-items:center;gap:10px;font-size:11px}
+  .rb .rb-l{font-family:var(--mono);font-size:10px;color:var(--txt-2);letter-spacing:.04em}
+  .rb .track{height:5px;background:var(--panel-2);border-radius:3px;overflow:hidden}
+  .rb .fill{height:100%;border-radius:3px}
+  .rb .rb-v{font-family:var(--mono);font-size:10.5px;color:var(--txt);text-align:right}
+  .summary{font-size:13px;line-height:1.7;color:var(--txt-2)}
+  .summary b{color:var(--txt);font-weight:600}
+  .bb-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  @media(max-width:560px){.bb-grid{grid-template-columns:1fr}}
+  .case{border-radius:8px;padding:13px 15px;border:1px solid var(--line-soft)}
+  .case.bull{background:var(--up-soft);border-color:rgba(22,199,126,.28)}
+  .case.bear{background:var(--down-soft);border-color:rgba(240,69,94,.28)}
+  .case .ch{display:flex;align-items:center;gap:7px;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:9px;font-family:var(--mono)}
+  .case.bull .ch{color:var(--up)}.case.bear .ch{color:var(--down)}
+  .case ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+  .case li{font-size:12px;line-height:1.5;color:var(--txt-2);padding-left:14px;position:relative}
+  .case li::before{content:"";position:absolute;left:0;top:7px;width:4px;height:4px;border-radius:1px}
+  .case.bull li::before{background:var(--up)}.case.bear li::before{background:var(--down)}
+  .signal{display:flex;align-items:center;gap:14px;margin-top:14px;background:var(--panel-2);border:1px solid var(--accent-line);border-radius:8px;padding:13px 16px}
+  .signal .verdict{font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:.1em;padding:5px 12px;border-radius:5px;flex:none}
+  .signal.hold .verdict{background:var(--amber-soft);color:var(--amber);border:1px solid rgba(224,163,59,.4)}
+  .signal .txt{font-size:12px;color:var(--txt-2);line-height:1.5}
+  .signal .txt b{color:var(--txt)}
+  .tip{margin-top:12px;display:flex;gap:11px;align-items:flex-start;font-size:12px;color:var(--txt-2);line-height:1.6;background:var(--amber-soft);border-left:3px solid var(--amber);border-radius:0 7px 7px 0;padding:12px 14px}
+  .tip svg{width:15px;height:15px;color:var(--amber);flex:none;margin-top:1px}
+  .tip b{color:var(--txt)}
+  .chart-box{height:170px;width:100%;position:relative;margin-top:4px}
+  .chart-box svg{width:100%;height:100%;display:block;overflow:visible}
+  .forecast-kpis{display:flex;gap:0;margin-bottom:14px;border:1px solid var(--line-soft);border-radius:8px;overflow:hidden}
+  .fk{flex:1;padding:11px 14px;border-right:1px solid var(--line-soft)}
+  .fk:last-child{border-right:none}
+  .fk .l{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--txt-3);text-transform:uppercase}
+  .fk .v{font-family:var(--mono);font-size:18px;font-weight:600;margin-top:6px}
+</style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 4 6-8"/><path d="M21 7v4h-4"/></svg></div>
+      <div><div class="name">MarketPulse</div><div class="sub">INDIA · NSE TERMINAL</div></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-label">Home</div>
+      <a class="nav-item" href="Overview.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</a>
+      <a class="nav-item active" href="MarketPulse Terminal.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 2 5-7"/></svg>Stock Analysis</a>
+      <a class="nav-item" href="News Feed.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>News Feed</a>
+      <a class="nav-item" href="Portfolio.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 13h4l2 5 4-12 2 7h6"/></svg>Portfolio</a>
+      <a class="nav-item" href="Earnings Analysis.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>Earnings Analysis</a>
+      <div class="nav-label">Assistant</div>
+      <a class="nav-item" href="AI Chatbot.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI Chatbot</a>
+    </nav>
+    <div class="prefs">
+      <div class="pref-row"><label>Timezone</label><select><option>India (IST)</option><option>UAE (GST)</option><option>UK (GMT/BST)</option><option>US Eastern</option><option>Singapore</option></select></div>
+      <div class="pref-row"><label>Language</label><select><option>English</option><option>Hindi</option></select></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="tickerbar"><div class="tick-label"><span class="dot"></span>LIVE · NSE</div><div class="tick-track" id="track"></div></div>
+    <header class="topbar">
+      <div><h1>Stock Analysis</h1><div class="crumb">HOME / STOCK ANALYSIS / RELIANCE.NS</div></div>
+      <div class="search">
+        <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input value="RELIANCE.NS" spellcheck="false"></div>
+        <div class="sep"></div>
+        <div class="field sm"><input value="Reliance Industries" spellcheck="false"></div>
+        <button>Analyze</button>
+      </div>
+    </header>
+
+    <div class="scroll">
+      <div class="stock-head">
+        <div class="stock-id">
+          <div class="stock-logo">R</div>
+          <div><div class="co">Reliance Industries</div><div class="meta"><span>RELIANCE.NS</span><span class="badge">NIFTY 50</span><span>ENERGY · CONGLOMERATE</span></div></div>
+        </div>
+        <div class="price-now"><div class="px">₹2,948.65</div><div class="delta up"><span>+34.20</span><span class="pill up">+1.17%</span></div></div>
+      </div>
+
+      <div class="grid metrics">
+        <div class="panel kpi"><div class="k-label">99% VaR</div><div class="k-val down">−3.84%</div><div class="k-foot">Worst expected daily loss, 99% of the time</div><svg class="spark" width="58" height="22" viewBox="0 0 58 22" fill="none"><path d="M1 14 L9 11 L17 16 L25 8 L33 13 L41 6 L49 10 L57 4" stroke="#F0455E" stroke-width="1.5"/></svg></div>
+        <div class="panel kpi"><div class="k-label">99% ES</div><div class="k-val down">−5.12%</div><div class="k-foot">Average loss when VaR is breached</div><svg class="spark" width="58" height="22" viewBox="0 0 58 22" fill="none"><path d="M1 12 L9 14 L17 9 L25 15 L33 10 L41 14 L49 7 L57 12" stroke="#F0455E" stroke-width="1.5"/></svg></div>
+        <div class="panel kpi"><div class="k-label">Volatility Regime</div><div class="k-val" style="color:var(--amber)">High Vol</div><div class="k-foot">HMM 2-state regime · 14 of last 20 sessions</div><svg class="spark" width="58" height="22" viewBox="0 0 58 22" fill="none"><path d="M1 11 L9 5 L17 17 L25 7 L33 18 L41 6 L49 16 L57 9" stroke="#E0A33B" stroke-width="1.5"/></svg></div>
+        <div class="panel kpi"><div class="k-label">Sentiment Risk</div><div class="k-val">58<span style="font-size:14px;color:var(--txt-3)">/100</span></div><div class="k-foot">FinBERT news sentiment · neutral-bearish</div><svg class="spark" width="58" height="22" viewBox="0 0 58 22" fill="none"><path d="M1 9 L9 12 L17 10 L25 13 L33 11 L41 15 L49 13 L57 16" stroke="#9AA6C2" stroke-width="1.5"/></svg></div>
+      </div>
+
+      <div class="split">
+        <div class="panel">
+          <div class="panel-h"><div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/></svg></span>Composite Risk Score</div><span class="tag">EVT · HMM · FINBERT</span></div>
+          <div class="risk-wrap">
+            <div class="gauge">
+              <svg viewBox="0 0 130 130"><circle cx="65" cy="65" r="54" fill="none" stroke="#0D1424" stroke-width="12"/><circle id="gaugeArc" cx="65" cy="65" r="54" fill="none" stroke="#E0A33B" stroke-width="12" stroke-linecap="round" stroke-dasharray="339.3" stroke-dashoffset="339.3" transform="rotate(-90 65 65)"/></svg>
+              <div class="score"><div class="n" style="color:var(--amber)">61</div><div class="d">/ 100</div></div>
+            </div>
+            <div class="risk-detail">
+              <div class="risk-label" style="color:var(--amber)"><span class="dot" style="background:var(--amber)"></span>Moderate Risk · Amber</div>
+              <div class="risk-bars">
+                <div class="rb"><span class="rb-l">EVT</span><div class="track"><div class="fill" style="width:68%;background:var(--down)"></div></div><span class="rb-v">0.50w</span></div>
+                <div class="rb"><span class="rb-l">Regime</span><div class="track"><div class="fill" style="width:74%;background:var(--amber)"></div></div><span class="rb-v">0.30w</span></div>
+                <div class="rb"><span class="rb-l">Sentiment</span><div class="track"><div class="fill" style="width:58%;background:var(--txt-2)"></div></div><span class="rb-v">0.20w</span></div>
+              </div>
+              <div style="font-size:11.5px;color:var(--txt-2);margin-top:13px;line-height:1.5">Elevated tail risk and a high-volatility regime push this into <b style="color:var(--amber)">moderate territory</b>. Research before adding exposure.</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M5 17l.8 2.2L8 20l-2.2.8L5 23l-.8-2.2L2 20l2.2-.8z"/></svg></span>AI Insights</div><span class="tag">LLAMA 3.3 70B</span></div>
+          <div class="summary"><b>Reliance</b> sits in a high-volatility regime with tail-risk metrics above its 2-year average. Recent news skews neutral-to-cautious on margin pressure in the O2C segment, though Jio and retail momentum remain structurally positive.</div>
+          <div class="signal hold"><span class="verdict">HOLD</span><span class="txt"><b>Hold</b> — fundamentals intact but near-term volatility warrants waiting for a clearer entry rather than adding now.</span></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:14px">
+        <div class="panel-h"><div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 8l4-4M20 4v5M20 4h-5"/><path d="M8 16l-4 4M4 20v-5M4 20h5"/></svg></span>Bull &amp; Bear Case</div><span class="tag">AI GENERATED</span></div>
+        <div class="bb-grid">
+          <div class="case bull">
+            <div class="ch"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 17l6-6 4 4 8-9"/><path d="M21 6v5h-5"/></svg>Bull Case</div>
+            <ul><li>Jio &amp; retail verticals compounding double-digit revenue growth, diversifying away from cyclical O2C.</li><li>New-energy capex positions Reliance for a structural green-transition tailwind through the decade.</li><li>Strong balance sheet and free cash flow buffer downside in volatile markets.</li></ul>
+          </div>
+          <div class="case bear">
+            <div class="ch"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 7l6 6 4-4 8 9"/><path d="M21 18v-5h-5"/></svg>Bear Case</div>
+            <ul><li>O2C margins under pressure from soft global refining spreads and crude volatility.</li><li>High-vol regime signals elevated drawdown probability over the next several sessions.</li><li>Heavy capex cycle may compress near-term returns and weigh on free cash flow.</li></ul>
+          </div>
+        </div>
+        <div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1h6c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg><div><b>Portfolio Tip:</b> If already held, maintain position but avoid averaging up during this high-vol window. Consider a staggered entry on dips toward the ₹2,820 support zone.</div></div>
+      </div>
+
+      <div class="split">
+        <div class="panel">
+          <div class="panel-h"><div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 5-6"/></svg></span>Price History</div><span class="tag">2Y · CLOSE</span></div>
+          <div class="chart-box" id="priceChart"></div>
+          <div class="chart-foot"><span>JUL 2024</span><span>JAN 2025</span><span>JUL 2025</span><span>JUN 2026</span></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span>30-Day Forecast</div><span class="tag">ARIMA(5,1,0)</span></div>
+          <div class="forecast-kpis"><div class="fk"><div class="l">Current</div><div class="v">₹2,948</div></div><div class="fk"><div class="l">Predicted 30D</div><div class="v">₹3,021</div></div><div class="fk"><div class="l">Exp. Change</div><div class="v up">+2.48%</div></div></div>
+          <div class="chart-box" id="fcChart" style="height:118px"></div>
+          <div class="legend" style="margin-top:10px"><span><i style="border-color:var(--accent)"></i>Forecast</span><span><i style="border-color:#2a3a5e;border-top-style:dashed"></i>Confidence band</span></div>
+        </div>
+      </div>
+
+      <div class="disclaimer">NOT FINANCIAL ADVICE · CONSULT A SEBI-REGISTERED ADVISOR BEFORE INVESTING · DATA VIA YAHOO FINANCE</div>
+    </div>
+  </div>
+
+<script src="ticker.js"></script>
+<script>
+  requestAnimationFrame(()=>{ setTimeout(()=>{
+    const arc=document.getElementById('gaugeArc'), C=2*Math.PI*54;
+    arc.style.transition='stroke-dashoffset 1.1s cubic-bezier(.3,1,.4,1)';
+    arc.style.strokeDashoffset=C*(1-0.61);
+  },150); });
+
+  function buildArea(elId,pts,W,H,opts){
+    opts=opts||{};
+    const min=Math.min(...pts),max=Math.max(...pts),pad=(max-min)*0.12,lo=min-pad,hi=max+pad,n=pts.length;
+    const x=i=>(i/(n-1))*W, y=v=>H-((v-lo)/(hi-lo))*H;
+    let line=pts.map((v,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ');
+    let area=line+` L${W} ${H} L0 ${H} Z`;
+    const grid=[0,.25,.5,.75,1].map(f=>`<line class="grid-line" x1="0" y1="${(H*f).toFixed(1)}" x2="${W}" y2="${(H*f).toFixed(1)}"/>`).join('');
+    const labels=[hi,(hi+lo)/2,lo].map((v,i)=>`<text class="axis-y" x="${W+6}" y="${[10,H/2,H][i]}">₹${Math.round(v).toLocaleString('en-IN')}</text>`).join('');
+    const stroke=opts.stroke||'#2563EB';
+    document.getElementById(elId).innerHTML=
+      `<svg viewBox="0 0 ${W+44} ${H}" preserveAspectRatio="none"><defs><linearGradient id="g_${elId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${stroke}" stop-opacity=".28"/><stop offset="100%" stop-color="${stroke}" stop-opacity="0"/></linearGradient></defs>${grid}<path d="${area}" fill="url(#g_${elId})"/><path d="${line}" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/><circle cx="${x(n-1).toFixed(1)}" cy="${y(pts[n-1]).toFixed(1)}" r="3.2" fill="${stroke}"/>${labels}</svg>`;
+  }
+  const hist=[2210,2185,2260,2240,2320,2290,2380,2350,2300,2410,2460,2420,2510,2480,2440,2560,2600,2540,2630,2680,2610,2720,2700,2660,2780,2840,2790,2730,2880,2920,2860,2810,2900,2960,2890,2948];
+  buildArea('priceChart',hist,480,170,{stroke:'#2563EB'});
+
+  (function(){
+    const W=300,H=118;
+    const histTail=[2860,2890,2910,2900,2920,2948];
+    const fc=[2948,2962,2958,2974,2985,2978,2996,3004,2998,3012,3021];
+    const all=[...histTail,...fc.slice(1)];
+    const min=Math.min(...all),max=Math.max(...all),pad=(max-min)*0.4,lo=min-pad,hi=max+pad,n=all.length;
+    const x=i=>(i/(n-1))*W, y=v=>H-((v-lo)/(hi-lo))*H;
+    const histPath=histTail.map((v,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ');
+    const fcOff=histTail.length-1;
+    const fcPath=fc.map((v,i)=>`${i?'L':'M'}${x(i+fcOff).toFixed(1)} ${y(v).toFixed(1)}`).join(' ');
+    const upper=fc.map(v=>v*1.012),lower=fc.map(v=>v*0.988);
+    const bandTop=upper.map((v,i)=>`${i?'L':'M'}${x(i+fcOff).toFixed(1)} ${y(v).toFixed(1)}`).join(' ');
+    const band=bandTop+' '+lower.slice().reverse().map((v,i)=>`L${x((lower.length-1-i)+fcOff).toFixed(1)} ${y(v).toFixed(1)}`).join(' ')+' Z';
+    const grid=[0,.33,.66,1].map(f=>`<line class="grid-line" x1="0" y1="${(H*f).toFixed(1)}" x2="${W}" y2="${(H*f).toFixed(1)}"/>`).join('');
+    document.getElementById('fcChart').innerHTML=
+      `<svg viewBox="0 0 ${W+44} ${H}" preserveAspectRatio="none">${grid}<path d="${band}" fill="rgba(37,99,235,.13)" stroke="none"/><path d="${histPath}" fill="none" stroke="#5E6C8C" stroke-width="2" stroke-linejoin="round"/><path d="${fcPath}" fill="none" stroke="#2563EB" stroke-width="2" stroke-linejoin="round"/><circle cx="${x(n-1).toFixed(1)}" cy="${y(all[n-1]).toFixed(1)}" r="3.2" fill="#2563EB"/><text class="axis-y" x="${W+6}" y="11">₹${Math.round(hi)}</text><text class="axis-y" x="${W+6}" y="${H}">₹${Math.round(lo)}</text></svg>`;
+  })();
+</script>
+</body>
+</html>

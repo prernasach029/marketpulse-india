@@ -164,14 +164,23 @@ if "language" not in st.session_state:
 
 # --- Sidebar ---
 with st.sidebar:
+    # Brand
     st.markdown("""
-    <div style="padding: 4px 0 12px 0; border-bottom: 1px solid var(--line); margin-bottom: 12px;">
-        <div style="font-family: var(--sans); font-weight: 700; font-size: 15px; color: var(--txt); letter-spacing: -0.01em;">MarketPulse</div>
-        <div style="font-family: var(--mono); font-size: 9.5px; color: var(--txt-3); letter-spacing: 0.12em; margin-top: 3px;">INDIA · NSE ANALYTICS</div>
+    <div class="brand-block">
+        <div class="brand-mark">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 17l5-6 4 4 6-8"/><path d="M21 7v4h-4"/>
+            </svg>
+        </div>
+        <div>
+            <div class="brand-name">MarketPulse</div>
+            <div class="brand-sub">INDIA · NSE TERMINAL</div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
-    with st.expander("Home", expanded=st.session_state.home_expanded):
+    st.markdown('<div class="nav-section">Home</div>', unsafe_allow_html=True)
+    with st.expander("Navigate", expanded=st.session_state.home_expanded):
         if st.button("Overview", use_container_width=True, key="nav_home"):
             st.session_state.page = "home"
             st.session_state.home_expanded = True
@@ -193,26 +202,24 @@ with st.sidebar:
             st.session_state.home_expanded = True
             st.rerun()
 
-    st.markdown("---")
+    st.markdown('<div class="nav-section">Assistant</div>', unsafe_allow_html=True)
     if st.button("Chatbot", use_container_width=True, key="nav_chat"):
         st.session_state.page = "chatbot"
         st.session_state.home_expanded = False
         st.rerun()
 
     st.markdown("---")
-    st.markdown("<div style='font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; color:var(--txt-3); text-transform:uppercase; margin-bottom:8px'>Preferences</div>", unsafe_allow_html=True)
-    st.session_state.timezone = st.selectbox(
-        "Timezone",
+    st.markdown('<div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--txt-3);text-transform:uppercase;margin-bottom:8px">Timezone</div>', unsafe_allow_html=True)
+    st.session_state.timezone = st.selectbox("", 
         ["India (IST)", "UAE (GST)", "UK (GMT/BST)", "US Eastern", "US Pacific", "Singapore"],
-        index=["India (IST)", "UAE (GST)", "UK (GMT/BST)", "US Eastern", "US Pacific", "Singapore"].index(
-            st.session_state.timezone),
-        key="tz_select"
+        index=["India (IST)", "UAE (GST)", "UK (GMT/BST)", "US Eastern", "US Pacific", "Singapore"].index(st.session_state.timezone),
+        key="tz_select", label_visibility="collapsed"
     )
-    st.session_state.language = st.selectbox(
-        "Language",
+    st.markdown('<div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--txt-3);text-transform:uppercase;margin-bottom:8px;margin-top:8px">Language</div>', unsafe_allow_html=True)
+    st.session_state.language = st.selectbox("",
         ["English", "Hindi"],
         index=["English", "Hindi"].index(st.session_state.language),
-        key="lang_select"
+        key="lang_select", label_visibility="collapsed"
     )
 
 # --- Constants ---
@@ -399,85 +406,79 @@ Always note this is not financial advice — suggest consulting a SEBI-registere
 # PAGE: HOME
 # ─────────────────────────────────────────
 if st.session_state.page == "home":
-    st.markdown("## MarketPulse India")
-    st.markdown("##### NSE stock risk analysis for Indian retail investors")
-    st.markdown("---")
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("""
-        <div class="feature-card">
-            <div class="feature-title">Stock Analysis</div>
-            <div class="feature-desc">
-                Enter any NSE ticker and get a full risk breakdown —
-                tail risk via EVT, volatility regime via HMM, and
-                news sentiment via FinBERT. Includes plain-English
-                summary, bull/bear view, and a buy/hold/sell signal.
-            </div>
-            <span class="tag">EVT</span>
-            <span class="tag">HMM</span>
-            <span class="tag">FinBERT</span>
+    # Ticker bar
+    st.markdown("""
+    <div class="tickerbar">
+        <div class="tick-label"><span class="dot"></span>LIVE · NSE</div>
+        <div class="tick-track" id="track">
+            <span class="tick"><span class="sym">NIFTY 50</span><span class="val">24,318.40</span><span class="chg up">▲ 0.62%</span></span>
+            <span class="tick"><span class="sym">SENSEX</span><span class="val">79,943.71</span><span class="chg up">▲ 0.55%</span></span>
+            <span class="tick"><span class="sym">BANK NIFTY</span><span class="val">51,602.05</span><span class="chg down">▼ 0.31%</span></span>
+            <span class="tick"><span class="sym">NIFTY IT</span><span class="val">41,887.20</span><span class="chg up">▲ 1.24%</span></span>
+            <span class="tick"><span class="sym">NIFTY AUTO</span><span class="val">23,104.80</span><span class="chg up">▲ 0.88%</span></span>
+            <span class="tick"><span class="sym">INR/USD</span><span class="val">83.42</span><span class="chg up">▲ 0.08%</span></span>
+            <span class="tick"><span class="sym">GOLD MCX</span><span class="val">71,840</span><span class="chg up">▲ 0.43%</span></span>
+            <span class="tick"><span class="sym">CRUDE MCX</span><span class="val">6,284</span><span class="chg down">▼ 1.02%</span></span>
+            <span class="tick"><span class="sym">NIFTY 50</span><span class="val">24,318.40</span><span class="chg up">▲ 0.62%</span></span>
+            <span class="tick"><span class="sym">SENSEX</span><span class="val">79,943.71</span><span class="chg up">▲ 0.55%</span></span>
+            <span class="tick"><span class="sym">BANK NIFTY</span><span class="val">51,602.05</span><span class="chg down">▼ 0.31%</span></span>
+            <span class="tick"><span class="sym">NIFTY IT</span><span class="val">41,887.20</span><span class="chg up">▲ 1.24%</span></span>
         </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("""
-        <div class="feature-card">
-            <div class="feature-title">Earnings Analysis</div>
-            <div class="feature-desc">
-                Quarterly revenue, profit trends, and EPS beat/miss
-                history for any NSE stock. Includes AI-generated
-                earnings health summary.
+    </div>
+    <div class="topbar">
+        <div><h1>Overview</h1><div class="crumb">HOME / OVERVIEW</div></div>
+    </div>
+    <div class="page-content">
+        <div class="hero">
+            <div>
+                <h2>Welcome to MarketPulse India.</h2>
+                <p>Multi-model risk intelligence for NSE-listed equities — tail risk via EVT, volatility regimes via HMM, and news sentiment via FinBERT, distilled into plain-English signals.</p>
             </div>
-            <span class="tag">EPS</span>
-            <span class="tag">Revenue</span>
-            <span class="tag">AI Summary</span>
+            <div class="stamp">NSE TERMINAL<br>INDIA · EQUITY RISK</div>
         </div>
-        """, unsafe_allow_html=True)
 
-        st.markdown("""
-        <div class="feature-card">
-            <div class="feature-title">AI Chatbot</div>
-            <div class="feature-desc">
-                Ask anything about a stock or investing in general.
-                Context-aware — knows your last analysis and answers
-                follow-up questions in plain English.
+        <div class="grid snap">
+            <div class="panel"><div class="l">NIFTY 50</div><div class="v">24,318.40</div><div class="c up"><span class="pill up">▲ 0.62%</span><span>+150.20</span></div></div>
+            <div class="panel"><div class="l">SENSEX</div><div class="v">79,943.71</div><div class="c up"><span class="pill up">▲ 0.55%</span><span>+438.10</span></div></div>
+            <div class="panel"><div class="l">India VIX</div><div class="v" style="color:var(--amber)">14.82</div><div class="c"><span class="pill down">▼ 3.10%</span><span class="down">elevated</span></div></div>
+            <div class="panel"><div class="l">Adv / Decl</div><div class="v">1,284 / 906</div><div class="c up"><span class="pill up">BREADTH +</span><span>58% advancing</span></div></div>
+        </div>
+
+        <div class="split">
+            <div class="panel">
+                <div class="panel-h">
+                    <div class="t"><span class="ic"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5h18M3 12h18M3 19h18"/></svg></span>Watchlist</div>
+                    <span class="tag">RISK-RANKED</span>
+                </div>
+                <table>
+                    <thead><tr><th>Stock</th><th>Last</th><th>Chg %</th><th>Regime</th><th>Risk</th></tr></thead>
+                    <tbody>
+                        <tr><td><div class="wl-name"><div class="wl-logo">R</div><div>Reliance Inds.<div class="wl-tk">RELIANCE.NS</div></div></div></td><td>2,948.65</td><td class="up">+1.17%</td><td style="color:var(--amber)">High Vol</td><td><span class="risk-chip rc-a">61 · Amber</span></td></tr>
+                        <tr><td><div class="wl-name"><div class="wl-logo">T</div><div>TCS<div class="wl-tk">TCS.NS</div></div></div></td><td>4,182.30</td><td class="up">+0.42%</td><td style="color:var(--up)">Low Vol</td><td><span class="risk-chip rc-g">28 · Green</span></td></tr>
+                        <tr><td><div class="wl-name"><div class="wl-logo">H</div><div>HDFC Bank<div class="wl-tk">HDFCBANK.NS</div></div></div></td><td>1,694.05</td><td class="down">−0.38%</td><td style="color:var(--up)">Low Vol</td><td><span class="risk-chip rc-g">33 · Green</span></td></tr>
+                        <tr><td><div class="wl-name"><div class="wl-logo">I</div><div>Infosys<div class="wl-tk">INFY.NS</div></div></div></td><td>1,571.90</td><td class="up">+0.91%</td><td style="color:var(--amber)">High Vol</td><td><span class="risk-chip rc-a">47 · Amber</span></td></tr>
+                        <tr><td><div class="wl-name"><div class="wl-logo">A</div><div>Adani Ent.<div class="wl-tk">ADANIENT.NS</div></div></div></td><td>2,830.55</td><td class="down">−2.14%</td><td style="color:var(--down)">High Vol</td><td><span class="risk-chip rc-r">78 · Red</span></td></tr>
+                        <tr><td><div class="wl-name"><div class="wl-logo">W</div><div>Wipro<div class="wl-tk">WIPRO.NS</div></div></div></td><td>542.20</td><td class="up">+0.33%</td><td style="color:var(--up)">Low Vol</td><td><span class="risk-chip rc-g">31 · Green</span></td></tr>
+                    </tbody>
+                </table>
             </div>
-            <span class="tag">Groq LLM</span>
-            <span class="tag">Context-aware</span>
-        </div>
-        """, unsafe_allow_html=True)
 
-    with col2:
-        st.markdown("""
-        <div class="feature-card">
-            <div class="feature-title">News Feed</div>
-            <div class="feature-desc">
-                Latest financial news for any stock from multiple
-                sources. Filtered by your timezone and language.
-                Refreshed on every visit.
-            </div>
-            <span class="tag">Multi-source</span>
-            <span class="tag">Timezone-aware</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("""
-        <div class="feature-card">
-            <div class="feature-title">How to use</div>
-            <div class="feature-desc">
-                1. Set timezone and language in the sidebar<br><br>
-                2. Click <b>Stock Analysis</b> under Home in the sidebar<br><br>
-                3. Enter a ticker like <code>RELIANCE.NS</code> and click Analyze<br><br>
-                4. Visit <b>News Feed</b> for latest headlines<br><br>
-                5. Use <b>Chatbot</b> to ask follow-up questions
+            <div class="panel">
+                <div class="panel-h">
+                    <div class="t"><span class="ic"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg></span>Modules</div>
+                    <span class="tag">5 TOOLS</span>
+                </div>
+                <div class="mods">
+                    <div class="mod"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 2 5-7"/></svg></div><div><div class="mt">Stock Analysis</div><div class="md">Full risk breakdown — EVT tail risk, HMM regime, FinBERT sentiment, and a buy/hold/sell signal.</div><div class="tags"><span class="tg">EVT</span><span class="tg">HMM</span><span class="tg">FinBERT</span></div></div></div>
+                    <div class="mod"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg></div><div><div class="mt">Earnings Analysis</div><div class="md">Quarterly revenue, profit, and EPS beat/miss history with an AI earnings-health summary.</div><div class="tags"><span class="tg">EPS</span><span class="tg">Revenue</span></div></div></div>
+                    <div class="mod"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div><div><div class="mt">News Feed</div><div class="md">Latest financial headlines per stock — timezone and language aware, refreshed each visit.</div><div class="tags"><span class="tg">Multi-source</span></div></div></div>
+                    <div class="mod"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 13h4l2 5 4-12 2 7h6"/></svg></div><div><div class="mt">Portfolio Tracker</div><div class="md">Rank up to 5 stocks by risk and get a portfolio health score with AI rebalancing advice.</div><div class="tags"><span class="tg">Ranked</span><span class="tg">Health score</span></div></div></div>
+                </div>
             </div>
         </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("---")
-    st.caption("Not financial advice. Always consult a SEBI-registered advisor before investing.")
-
-
+        <div class="disclaimer">NOT FINANCIAL ADVICE · CONSULT A SEBI-REGISTERED ADVISOR BEFORE INVESTING · DATA VIA YAHOO FINANCE</div>
+    </div>
+    """, unsafe_allow_html=True)
 # ─────────────────────────────────────────
 # PAGE: STOCK ANALYSIS
 # ─────────────────────────────────────────
@@ -485,6 +486,22 @@ elif st.session_state.page == "stocks":
     st.markdown("## Stock Analysis")
     st.markdown("Enter an NSE ticker to get a full risk breakdown and AI-powered insights.")
     st.markdown("---")
+    st.markdown("""
+    <div class="tickerbar">
+        <div class="tick-label"><span class="dot"></span>LIVE · NSE</div>
+        <div class="tick-track">
+            <span class="tick"><span class="sym">NIFTY 50</span><span class="val">24,318.40</span><span class="chg up">▲ 0.62%</span></span>
+            <span class="tick"><span class="sym">SENSEX</span><span class="val">79,943.71</span><span class="chg up">▲ 0.55%</span></span>
+            <span class="tick"><span class="sym">NIFTY IT</span><span class="val">41,887.20</span><span class="chg up">▲ 1.24%</span></span>
+            <span class="tick"><span class="sym">NIFTY 50</span><span class="val">24,318.40</span><span class="chg up">▲ 0.62%</span></span>
+            <span class="tick"><span class="sym">SENSEX</span><span class="val">79,943.71</span><span class="chg up">▲ 0.55%</span></span>
+        </div>
+    </div>
+    <div class="topbar">
+        <div><h1>Stock Analysis</h1><div class="crumb">HOME / STOCK ANALYSIS</div></div>
+    </div>
+    <div class="page-content">
+    """, unsafe_allow_html=True)
 
     with st.form("analysis_form"):
         c1, c2, c3 = st.columns([2, 2, 1])
@@ -612,6 +629,7 @@ elif st.session_state.page == "stocks":
             change_abs = abs(pred["change_pct"])
             if pred["change_pct"] > 2:
                 forecast_text = f"The model suggests **{company_name}** may trend upward over the next 30 trading days, with a predicted price of around ₹{pred['predicted_end']} (currently ₹{pred['current_price']}). The shaded band shows the range of likely prices."
+            
             elif pred["change_pct"] < -2:
                 forecast_text = f"The model suggests **{company_name}** may trend downward over the next 30 trading days, with a predicted price of around ₹{pred['predicted_end']} (currently ₹{pred['current_price']}). Consider waiting for a better entry point."
             else:
@@ -631,12 +649,18 @@ elif st.session_state.page == "stocks":
             "label": score["label"]
         }
         st.caption("Not financial advice. Consult a SEBI-registered advisor before investing.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────
 # PAGE: NEWS FEED
 # ─────────────────────────────────────────
 elif st.session_state.page == "news":
+    st.markdown("""
+    <div class="tickerbar"><div class="tick-label"><span class="dot"></span>LIVE · NSE</div><div class="tick-track"><span class="tick"><span class="sym">NIFTY 50</span><span class="val">24,318.40</span><span class="chg up">▲ 0.62%</span></span><span class="tick"><span class="sym">SENSEX</span><span class="val">79,943.71</span><span class="chg up">▲ 0.55%</span></span><span class="tick"><span class="sym">NIFTY IT</span><span class="val">41,887.20</span><span class="chg up">▲ 1.24%</span></span><span class="tick"><span class="sym">NIFTY 50</span><span class="val">24,318.40</span><span class="chg up">▲ 0.62%</span></span></div></div>
+    <div class="topbar"><div><h1>News Feed</h1><div class="crumb">HOME / NEWS FEED</div></div></div>
+    <div class="page-content">
+    """, unsafe_allow_html=True)
     st.markdown("## News Feed")
     st.markdown(
         f"Latest financial news · Timezone: **{st.session_state.timezone}** · Language: **{st.session_state.language}**"
@@ -667,12 +691,18 @@ elif st.session_state.page == "news":
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────
 # PAGE: CHATBOT
 # ─────────────────────────────────────────
 elif st.session_state.page == "chatbot":
+    st.markdown("""
+    <div class="tickerbar"><div class="tick-label"><span class="dot"></span>LIVE · NSE</div><div class="tick-track"><span class="tick"><span class="sym">NIFTY 50</span><span class="val">24,318.40</span><span class="chg up">▲ 0.62%</span></span><span class="tick"><span class="sym">SENSEX</span><span class="val">79,943.71</span><span class="chg up">▲ 0.55%</span></span><span class="tick"><span class="sym">NIFTY IT</span><span class="val">41,887.20</span><span class="chg up">▲ 1.24%</span></span><span class="tick"><span class="sym">NIFTY 50</span><span class="val">24,318.40</span><span class="chg up">▲ 0.62%</span></span></div></div>
+    <div class="topbar"><div><h1>AI Assistant</h1><div class="crumb">ASSISTANT / CHATBOT</div></div></div>
+    <div class="page-content">
+    """, unsafe_allow_html=True)
     st.markdown("## MarketPulse AI")
     st.markdown("---")
 
@@ -729,11 +759,17 @@ elif st.session_state.page == "chatbot":
                 response = chat_response(prompt)
                 st.markdown(response)
         st.session_state.messages.append({"role": "assistant", "content": response})
+        st.markdown('</div>', unsafe_allow_html=True)
 
         # ─────────────────────────────────────────
 # PAGE: PORTFOLIO
 # ─────────────────────────────────────────
 elif st.session_state.page == "portfolio":
+    st.markdown("""
+    <div class="tickerbar"><div class="tick-label"><span class="dot"></span>LIVE · NSE</div><div class="tick-track"><span class="tick"><span class="sym">NIFTY 50</span><span class="val">24,318.40</span><span class="chg up">▲ 0.62%</span></span><span class="tick"><span class="sym">SENSEX</span><span class="val">79,943.71</span><span class="chg up">▲ 0.55%</span></span><span class="tick"><span class="sym">NIFTY IT</span><span class="val">41,887.20</span><span class="chg up">▲ 1.24%</span></span><span class="tick"><span class="sym">NIFTY 50</span><span class="val">24,318.40</span><span class="chg up">▲ 0.62%</span></span></div></div>
+    <div class="topbar"><div><h1>Portfolio Tracker</h1><div class="crumb">HOME / PORTFOLIO</div></div></div>
+    <div class="page-content">
+    """, unsafe_allow_html=True)
     st.markdown("## Portfolio Tracker")
     st.markdown("Enter up to 5 NSE stocks to get a ranked risk breakdown and portfolio health score.")
     st.markdown("---")
@@ -828,6 +864,7 @@ elif st.session_state.page == "portfolio":
                 st.metric("Portfolio Health Score", f"{round(avg_score, 1)} / 100")
                 if avg_score >= 65:
                     st.error("High risk portfolio. Consider rebalancing.")
+                
                 elif avg_score >= 35:
                     st.warning("Moderate risk. Monitor closely.")
                 else:
@@ -878,10 +915,16 @@ Keep it simple, practical, and jargon-free."""
                     st.markdown(response.choices[0].message.content)
 
             st.caption("Not financial advice. Consult a SEBI-registered advisor before investing.")
+            st.markdown('</div>', unsafe_allow_html=True)
             # ─────────────────────────────────────────
 # PAGE: EARNINGS ANALYSIS
 # ─────────────────────────────────────────
 elif st.session_state.page == "earnings":
+    st.markdown("""
+    <div class="tickerbar"><div class="tick-label"><span class="dot"></span>LIVE · NSE</div><div class="tick-track"><span class="tick"><span class="sym">NIFTY 50</span><span class="val">24,318.40</span><span class="chg up">▲ 0.62%</span></span><span class="tick"><span class="sym">SENSEX</span><span class="val">79,943.71</span><span class="chg up">▲ 0.55%</span></span><span class="tick"><span class="sym">NIFTY IT</span><span class="val">41,887.20</span><span class="chg up">▲ 1.24%</span></span><span class="tick"><span class="sym">NIFTY 50</span><span class="val">24,318.40</span><span class="chg up">▲ 0.62%</span></span></div></div>
+    <div class="topbar"><div><h1>Earnings Analysis</h1><div class="crumb">HOME / EARNINGS</div></div></div>
+    <div class="page-content">
+    """, unsafe_allow_html=True)
     import pandas as pd
     import yfinance as yf
 
@@ -1029,3 +1072,4 @@ Use simple language. No jargon."""
             st.warning(f"No earnings data found for {ticker}. This is common for some NSE stocks on Yahoo Finance. Try `TCS.NS`, `INFY.NS`, or `HDFCBANK.NS`.")
 
         st.caption("Data sourced from Yahoo Finance. Not financial advice.")
+        st.markdown('</div>', unsafe_allow_html=True)

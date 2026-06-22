@@ -58,6 +58,13 @@ div[data-testid="stSidebarNav"] { display: none !important; }
 [data-baseweb="select"] { background: var(--panel-2) !important; border: 1px solid var(--line) !important; border-radius: 6px !important; }
 
 h1, h2, h3, h4 { font-family: var(--sans) !important; color: var(--txt) !important; font-weight: 700 !important; }
+[data-testid="stSidebar"] > div:first-child {
+    padding-top: 0 !important;
+}
+section[data-testid="stSidebar"] > div {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
 
 /* Sidebar nav items */
 .nav-section { font-family: var(--mono); font-size: 9.5px; letter-spacing: .18em; color: var(--txt-3); text-transform: uppercase; padding: 14px 10px 7px; }
@@ -83,6 +90,10 @@ h1, h2, h3, h4 { font-family: var(--sans) !important; color: var(--txt) !importa
 
 /* Page content padding */
 .page-content { padding: 22px 24px 60px; }
+.block-container {
+    padding-left: 1rem !important;
+}
+
 
 /* Panels */
 .panel { background: var(--panel); border: 1px solid var(--line-soft); border-radius: 10px; padding: 16px 18px; position: relative; overflow: hidden; margin-bottom: 14px; }

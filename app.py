@@ -19,12 +19,26 @@ from regime import detect_regimes
 from sentiment import analyze_sentiment
 from scoring import compute_composite_score
 
+# Show loading message while app initializes
+if "initialized" not in st.session_state:
+    st.session_state.initialized = True
+
 st.set_page_config(
     page_title="MarketPulse India",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Auto-collapse sidebar on mobile
+st.markdown("""
+<script>
+const sidebar = window.parent.document.querySelector('[data-testid="stSidebar"]');
+if (window.parent.innerWidth < 768 && sidebar) {
+    sidebar.style.transform = 'translateX(-100%)';
+}
+</script>
+""", unsafe_allow_html=True)
 
 from styles import load_css
 st.markdown(load_css(),unsafe_allow_html=True)
@@ -663,29 +677,51 @@ elif st.session_state.page == "stocks":
         with c3:
             period = st.selectbox("Period", ["1y", "2y", "5y"], index=1)
         submitted = st.form_submit_button("Analyze", use_container_width=True)
-
+    
     if submitted:
-        if not ticker:
-            st.error("Please select a company or enter a ticker.")
-            st.stop()
-
-    if submitted:
+    if not ticker:
+        st.error("Please select a company or enter a ticker.")
+        st.stop()
+    
+    try:
         with st.spinner("Fetching data..."):
             df = fetch_stock_data(ticker, period=period)
             df = compute_returns(df)
+    except Exception as e:
+        st.error(f"Could not fetch data for {ticker}. Please check the ticker and try again.")
+        st.stop()
 
+    try:
         with st.spinner("Running risk models..."):
             evt = compute_tail_risk(df["log_return"])
             regime_df, _ = detect_regimes(df["log_return"])
             current_regime = regime_df["regime"].iloc[-1]
             regime_counts = regime_df["regime"].value_counts()
+    except Exception as e:
+        st.error("Risk model error. Try a different time period.")
+        st.stop()
+
+    try:
+        with st.spinner("Analyzing sentiment..."):
             sent = analyze_sentiment(company_name)
-            score = compute_composite_score(
-                var_99=evt["VaR_99"],
-                es_99=evt["ES_99"],
-                regime=current_regime,
-                sentiment_risk_score=sent["sentiment_risk_score"]
-            )
+    except:
+        sent = {
+            "sentiment_risk_score": 50.0,
+            "avg_sentiment": 0.0,
+            "headlines_analyzed": 0,
+            "sample_headline": "Sentiment unavailable"
+        }
+
+    score = compute_composite_score(
+        var_99=evt["VaR_99"],
+        es_99=evt["ES_99"],
+        regime=current_regime,
+        sentiment_risk_score=sent["sentiment_risk_score"]
+    )
+    
+    
+
+
 
         st.markdown("---")
         st.markdown(f"### {company_name} ({ticker})")

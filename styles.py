@@ -38,6 +38,19 @@ a { color: inherit; text-decoration: none; }
 .pill.up { background: var(--up-soft); }
 .pill.down { background: var(--down-soft); }
 
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .block-container {
+        padding: 0.5rem !important;
+    }
+    [data-testid="stSidebar"] {
+        width: 80vw !important;
+    }
+    section[data-testid="stSidebarUserContent"] {
+        padding: 1rem 0.5rem !important;
+    }
+}
+
 /* Streamlit overrides */
 [data-testid="stAppViewContainer"] { background: var(--navy) !important; }
 [data-testid="stSidebar"] { background: var(--navy-2) !important; border-right: 1px solid var(--line) !important; }

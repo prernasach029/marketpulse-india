@@ -56,6 +56,57 @@ def health():
     return {"status": "ok"}
 
 
+@app.get("/stocks")
+def get_stocks():
+    try:
+        import requests
+        import pandas as pd
+        import ssl
+        ssl._create_default_https_context = ssl._create_unverified_context
+        url = "https://archives.nseindia.com/content/equities/EQUITY_L.csv"
+        headers = {"User-Agent": "Mozilla/5.0"}
+        df = pd.read_csv(url, storage_options={"headers": headers})
+        stocks = {}
+        for _, row in df.iterrows():
+            name = str(row["NAME OF COMPANY"]).strip().title()
+            ticker = str(row["SYMBOL"]).strip() + ".NS"
+            stocks[name] = ticker
+        return {"stocks": stocks}
+    except Exception as e:
+        return {"stocks": {
+            "Reliance Industries": "RELIANCE.NS",
+            "TCS": "TCS.NS",
+            "HDFC Bank": "HDFCBANK.NS",
+            "Infosys": "INFY.NS",
+            "ICICI Bank": "ICICIBANK.NS",
+            "Wipro": "WIPRO.NS",
+            "SBI": "SBIN.NS",
+            "Bajaj Finance": "BAJFINANCE.NS",
+            "Maruti Suzuki": "MARUTI.NS",
+            "Sun Pharma": "SUNPHARMA.NS",
+            "Titan Company": "TITAN.NS",
+            "NTPC": "NTPC.NS",
+            "Adani Enterprises": "ADANIENT.NS",
+            "JSW Steel": "JSWSTEEL.NS",
+            "Tata Motors": "TATAMOTORS.NS",
+            "Bajaj Auto": "BAJAJ-AUTO.NS",
+            "Coal India": "COALINDIA.NS",
+            "Cipla": "CIPLA.NS",
+            "Dr Reddys": "DRREDDY.NS",
+            "Apollo Hospitals": "APOLLOHOSP.NS",
+            "Zomato": "ZOMATO.NS",
+            "LTIMindtree": "LTIM.NS",
+            "Persistent Systems": "PERSISTENT.NS",
+            "Interglobe Aviation": "INDIGO.NS",
+            "Axis Bank": "AXISBANK.NS",
+            "Kotak Mahindra Bank": "KOTAKBANK.NS",
+            "Larsen & Toubro": "LT.NS",
+            "Asian Paints": "ASIANPAINT.NS",
+            "HCL Technologies": "HCLTECH.NS",
+            "Tech Mahindra": "TECHM.NS",
+        }}
+
+
 @app.post("/analyze")
 def analyze(req: AnalyzeRequest):
     try:
@@ -200,7 +251,7 @@ def chat(req: ChatRequest):
                 "content": (
                     "You are MarketPulse AI, a professional investment assistant for Indian retail investors.\n"
                     f"{context}\n"
-                    "Be concise and clear. Plain language only.\n"
+                    "Be concise and clear. Plain language only. No markdown, no asterisks.\n"
                     "Always note this is not financial advice."
                 )
             }
@@ -232,16 +283,16 @@ def get_insights(req: InsightsRequest):
             f"- Sentiment Risk: {req.sentiment_score}/100\n"
             f"- Composite Risk Score: {req.composite_score}/100 ({req.label})\n"
             f"- Latest News: {req.headline}\n\n"
-            "Respond in this exact structure:\n\n"
-            "**What this means**\n"
+            "Respond in this exact structure with NO asterisks or markdown:\n\n"
+            "What this means\n"
             "[2-3 plain English sentences]\n\n"
-            "**Bull Case**\n"
+            "Bull Case\n"
             "[2-3 reasons to consider buying/holding]\n\n"
-            "**Bear Case**\n"
+            "Bear Case\n"
             "[2-3 reasons to be cautious]\n\n"
-            "**Signal**\n"
+            "Signal\n"
             "[Buy / Hold / Sell - one sentence reason]\n\n"
-            "**Portfolio Tip**\n"
+            "Portfolio Tip\n"
             "[One actionable suggestion]\n\n"
             "Keep it concise and jargon-free."
         )
@@ -310,7 +361,8 @@ def get_earnings(ticker: str, company: str = ""):
                 f"EPS (TTM): {eps_val}\n"
                 f"Profit Margin: {margin}\n"
                 f"Total Revenue: {rev_val}\n\n"
-                "Give a concise earnings analysis with: Earnings Health, Strengths, Concerns, Valuation, Bottom Line. Simple language."
+                "Give a concise earnings analysis with these sections: Earnings Health, Strengths, Concerns, Valuation, Bottom Line.\n"
+                "Simple language. No asterisks or markdown formatting."
             )
             res = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
@@ -333,27 +385,3 @@ def get_earnings(ticker: str, company: str = ""):
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-        @app.get("/stocks")
-def get_stocks():
-    try:
-        import requests
-        import pandas as pd
-        import ssl
-        ssl._create_default_https_context = ssl._create_unverified_context
-        url = "https://archives.nseindia.com/content/equities/EQUITY_L.csv"
-        headers = {"User-Agent": "Mozilla/5.0"}
-        df = pd.read_csv(url, storage_options={"headers": headers})
-        stocks = {}
-        for _, row in df.iterrows():
-            name = str(row["NAME OF COMPANY"]).strip().title()
-            ticker = str(row["SYMBOL"]).strip() + ".NS"
-            stocks[name] = ticker
-        return {"stocks": stocks}
-    except:
-        # Fallback to hardcoded list
-        return {"stocks": {
-            "Reliance Industries": "RELIANCE.NS",
-            "TCS": "TCS.NS",
-            "HDFC Bank": "HDFCBANK.NS",
-            "Infosys": "INFY.NS",
-        }}

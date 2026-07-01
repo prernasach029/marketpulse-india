@@ -333,3 +333,27 @@ def get_earnings(ticker: str, company: str = ""):
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+        @app.get("/stocks")
+def get_stocks():
+    try:
+        import requests
+        import pandas as pd
+        import ssl
+        ssl._create_default_https_context = ssl._create_unverified_context
+        url = "https://archives.nseindia.com/content/equities/EQUITY_L.csv"
+        headers = {"User-Agent": "Mozilla/5.0"}
+        df = pd.read_csv(url, storage_options={"headers": headers})
+        stocks = {}
+        for _, row in df.iterrows():
+            name = str(row["NAME OF COMPANY"]).strip().title()
+            ticker = str(row["SYMBOL"]).strip() + ".NS"
+            stocks[name] = ticker
+        return {"stocks": stocks}
+    except:
+        # Fallback to hardcoded list
+        return {"stocks": {
+            "Reliance Industries": "RELIANCE.NS",
+            "TCS": "TCS.NS",
+            "HDFC Bank": "HDFCBANK.NS",
+            "Infosys": "INFY.NS",
+        }}
